@@ -23,3 +23,65 @@ body {
   margin: 0;
   padding: 0;
 }
+
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 28px;
+}
+
+/* Card drop landing animation */
+@keyframes card-land {
+  0% {
+    transform: scale(1);
+    border-color: var(--color-obsidian-border);
+  }
+  20% {
+    transform: scale(0.98);
+    border-color: var(--color-obsidian-accent);
+  }
+  55% {
+    transform: scale(1.006);
+    border-color: var(--color-obsidian-accent);
+  }
+  100% {
+    transform: scale(1);
+    border-color: var(--color-obsidian-border);
+  }
+}
+
+@keyframes card-shockwave {
+  0% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.07);
+  }
+}
+
+.card-drop-land {
+  position: relative;
+  animation: card-land 800ms cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+.card-drop-land::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  border: 1px solid var(--color-obsidian-accent);
+  pointer-events: none;
+  animation: card-shockwave 1000ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-drop-land,
+  .card-drop-land::after {
+    animation: none;
+  }
+}

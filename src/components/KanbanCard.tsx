@@ -7,6 +7,7 @@ interface KanbanCardProps {
   card: Card;
   index: number;
   onCardClick: (card: Card) => void;
+  isJustDropped?: boolean;
 }
 
 const priorityColors: Record<string, string> = {
@@ -16,7 +17,7 @@ const priorityColors: Record<string, string> = {
   P3: 'bg-priority-p3',
 };
 
-export function KanbanCard({ card, index, onCardClick }: KanbanCardProps) {
+export function KanbanCard({ card, index, onCardClick, isJustDropped }: KanbanCardProps) {
   const completedTasks = card.tasks.filter((t) => t.completed).length;
   const totalTasks = card.tasks.length;
   const progressPct = totalTasks > 0
@@ -30,18 +31,21 @@ export function KanbanCard({ card, index, onCardClick }: KanbanCardProps) {
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          onClick={() => onCardClick(card)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              onCardClick(card);
-            }
-          }}
-          className="bg-obsidian-card border border-obsidian-border rounded-card p-3 mb-2 cursor-pointer hover:border-obsidian-accent transition-colors"
-          role="button"
-          tabIndex={0}
-          aria-label={`Card: ${card.title}`}
+          className="mb-2"
         >
+          <div
+            onClick={() => onCardClick(card)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onCardClick(card);
+              }
+            }}
+            className={`bg-obsidian-card border border-obsidian-border rounded-card p-3 cursor-pointer hover:border-obsidian-accent transition-colors${isJustDropped ? ' card-drop-land' : ''}`}
+            role="button"
+            tabIndex={0}
+            aria-label={`Card: ${card.title}`}
+          >
           <div className="flex items-start justify-between gap-2">
             <span className="text-sm text-obsidian-text truncate block flex-1">
               {card.title}
@@ -78,6 +82,7 @@ export function KanbanCard({ card, index, onCardClick }: KanbanCardProps) {
                 </span>
               </div>
             )}
+          </div>
           </div>
         </div>
       )}

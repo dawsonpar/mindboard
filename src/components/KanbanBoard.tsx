@@ -1,21 +1,26 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { DragDropContext, type DropResult } from '@hello-pangea/dnd';
-import type { Card, CardStatus } from '@/types/card';
-import type { SortOption } from '@/types/sort';
-import { KanbanColumn } from './KanbanColumn';
-import { CardModal } from './CardModal';
-import { Toast } from './Toast';
-import { useSSE } from '@/hooks/useSSE';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
+import type { Card, CardStatus } from "@/types/card";
+import type { SortOption } from "@/types/sort";
+import { KanbanColumn } from "./KanbanColumn";
+import { CardModal } from "./CardModal";
+import { Toast } from "./Toast";
+import { useSSE } from "@/hooks/useSSE";
 
 interface KanbanBoardProps {
   project: string;
   sortBy: SortOption;
 }
 
-const COLUMN_ORDER: CardStatus[] = ['TODO', 'IN PROGRESS', 'REVIEW', 'COMPLETED'];
-const UNCATEGORIZED = 'Uncategorized';
+const COLUMN_ORDER: CardStatus[] = [
+  "TODO",
+  "IN PROGRESS",
+  "REVIEW",
+  "COMPLETED",
+];
+const UNCATEGORIZED = "Uncategorized";
 
 function sortCards(cards: Card[], sortBy: SortOption): Card[] {
   const sorted = [...cards];
@@ -28,24 +33,22 @@ function sortCards(cards: Card[], sortBy: SortOption): Card[] {
 
   sorted.sort((a, b) => {
     switch (sortBy) {
-      case 'priority': {
+      case "priority": {
         const pa = a.priority ? priorityOrder[a.priority] : 999;
         const pb = b.priority ? priorityOrder[b.priority] : 999;
         return pa - pb;
       }
-      case 'alpha':
+      case "alpha":
         return a.title.localeCompare(b.title, undefined, {
-          sensitivity: 'base',
+          sensitivity: "base",
         });
-      case 'created':
+      case "created":
         return (
-          new Date(b.createdAt).getTime() -
-          new Date(a.createdAt).getTime()
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
-      case 'modified':
+      case "modified":
         return (
-          new Date(b.modifiedAt).getTime() -
-          new Date(a.modifiedAt).getTime()
+          new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime()
         );
       default:
         return 0;
@@ -55,9 +58,7 @@ function sortCards(cards: Card[], sortBy: SortOption): Card[] {
   return sorted;
 }
 
-function groupByStatus(
-  cards: Card[]
-): Record<string, Card[]> {
+function groupByStatus(cards: Card[]): Record<string, Card[]> {
   const groups: Record<string, Card[]> = {};
   for (const col of COLUMN_ORDER) {
     groups[col] = [];
@@ -77,9 +78,10 @@ export function KanbanBoard({ project, sortBy }: KanbanBoardProps) {
   const [loading, setLoading] = useState(true);
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
   const [externalChange, setExternalChange] = useState(false);
+  const [droppedFilename, setDroppedFilename] = useState<string | null>(null);
   const [toast, setToast] = useState<{
     message: string;
-    type: 'info' | 'error' | 'success';
+    type: "info" | "error" | "success";
   } | null>(null);
 
   const selectedCardRef = useRef<Card | null>(null);
@@ -98,13 +100,13 @@ export function KanbanBoard({ project, sortBy }: KanbanBoardProps) {
   const fetchCards = useCallback(async () => {
     try {
       const res = await fetch(
-        `/api/cards?project=${encodeURIComponent(project)}`
+        `/api/cards?project=${encodeURIComponent(project)}`,
       );
       const data = await res.json();
       const fetched: Card[] = data.cards ?? [];
       setCards(fetched);
     } catch {
-      setToast({ message: 'Failed to load cards', type: 'error' });
+      setToast({ message: "Failed to load cards", type: "error" });
     } finally {
       setLoading(false);
     }
@@ -113,7 +115,7 @@ export function KanbanBoard({ project, sortBy }: KanbanBoardProps) {
   const fetchAndSyncSelected = useCallback(async () => {
     try {
       const res = await fetch(
-        `/api/cards?project=${encodeURIComponent(project)}`
+        `/api/cards?project=${encodeURIComponent(project)}`,
       );
       const data = await res.json();
       const fetched: Card[] = data.cards ?? [];
@@ -121,14 +123,14 @@ export function KanbanBoard({ project, sortBy }: KanbanBoardProps) {
 
       if (selectedCardRef.current) {
         const updated = fetched.find(
-          (c) => c.filename === selectedCardRef.current?.filename
+          (c) => c.filename === selectedCardRef.current?.filename,
         );
         if (updated) {
           setSelectedCard(updated);
         }
       }
     } catch {
-      setToast({ message: 'Failed to load cards', type: 'error' });
+      setToast({ message: "Failed to load cards", type: "error" });
     }
   }, [project]);
 
@@ -154,16 +156,16 @@ export function KanbanBoard({ project, sortBy }: KanbanBoardProps) {
         ) {
           setExternalChange(true);
           setToast({
-            message: 'Card was modified externally',
-            type: 'info',
+            message: "Card was modified externally",
+            type: "info",
           });
           fetchAndSyncSelected();
         } else {
           fetchCards();
         }
       },
-      [project, fetchCards, fetchAndSyncSelected]
-    )
+      [project, fetchCards, fetchAndSyncSelected],
+    ),
   );
 
   async function handleDragEnd(result: DropResult) {
@@ -176,9 +178,14 @@ export function KanbanBoard({ project, sortBy }: KanbanBoardProps) {
 
     setCards((prev) =>
       prev.map((c) =>
-        c.filename === draggableId ? { ...c, status: newStatus } : c
-      )
+        c.filename === draggableId ? { ...c, status: newStatus } : c,
+      ),
     );
+
+    setTimeout(() => {
+      setDroppedFilename(draggableId);
+      setTimeout(() => setDroppedFilename(null), 450);
+    }, 5);
 
     markAppWrite(draggableId);
 
@@ -186,13 +193,13 @@ export function KanbanBoard({ project, sortBy }: KanbanBoardProps) {
       await fetch(
         `/api/cards/${encodeURIComponent(project)}/${encodeURIComponent(draggableId)}`,
         {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ status: newStatus }),
-        }
+        },
       );
     } catch {
-      setToast({ message: 'Failed to update card status', type: 'error' });
+      setToast({ message: "Failed to update card status", type: "error" });
       fetchCards();
     }
   }
@@ -206,22 +213,22 @@ export function KanbanBoard({ project, sortBy }: KanbanBoardProps) {
       const res = await fetch(
         `/api/cards/${encodeURIComponent(project)}/${encodeURIComponent(selectedCard.filename)}`,
         {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(updates),
-        }
+        },
       );
       const updatedCard: Card = await res.json();
 
       setCards((prev) =>
         prev.map((c) =>
-          c.filename === updatedCard.filename ? updatedCard : c
-        )
+          c.filename === updatedCard.filename ? updatedCard : c,
+        ),
       );
       setSelectedCard(updatedCard);
       setExternalChange(false);
     } catch {
-      setToast({ message: 'Failed to save card', type: 'error' });
+      setToast({ message: "Failed to save card", type: "error" });
     }
   }
 
@@ -251,6 +258,7 @@ export function KanbanBoard({ project, sortBy }: KanbanBoardProps) {
               status={status}
               cards={grouped[status] ?? []}
               onCardClick={setSelectedCard}
+              droppedFilename={droppedFilename}
             />
           ))}
         </div>

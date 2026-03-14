@@ -35,7 +35,21 @@ export function Nav({
       role="navigation"
       aria-label="Main navigation"
     >
-      <span className="text-lg font-bold text-obsidian-text">
+      <span className="flex items-center gap-2 text-lg font-bold text-obsidian-text">
+        <span
+          aria-hidden="true"
+          className="inline-block w-[22px] h-[22px] bg-obsidian-accent"
+          style={{
+            maskImage: 'url(/brain.png)',
+            maskSize: 'contain',
+            maskRepeat: 'no-repeat',
+            maskPosition: 'center',
+            WebkitMaskImage: 'url(/brain.png)',
+            WebkitMaskSize: 'contain',
+            WebkitMaskRepeat: 'no-repeat',
+            WebkitMaskPosition: 'center',
+          }}
+        />
         MindBoard
       </span>
 
