@@ -91,7 +91,18 @@ export function KanbanBoard({ project, sortBy }: KanbanBoardProps) {
         `/api/cards?project=${encodeURIComponent(project)}`
       );
       const data = await res.json();
-      setCards(data.cards ?? []);
+      const fetched: Card[] = data.cards ?? [];
+      setCards(fetched);
+
+      // Update selectedCard if it exists in the new data
+      if (selectedCardRef.current) {
+        const updated = fetched.find(
+          (c) => c.filename === selectedCardRef.current?.filename
+        );
+        if (updated) {
+          setSelectedCard(updated);
+        }
+      }
     } catch {
       setToast({ message: 'Failed to load cards', type: 'error' });
     } finally {
@@ -198,18 +209,10 @@ export function KanbanBoard({ project, sortBy }: KanbanBoardProps) {
     );
   }
 
-  if (cards.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-64 text-obsidian-muted text-sm">
-        No cards yet. Create one to get started.
-      </div>
-    );
-  }
-
   return (
     <>
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="flex gap-4 p-4 overflow-x-auto h-[calc(100vh-56px)]">
+        <div className="flex gap-4 p-4 overflow-x-auto h-[calc(100vh-56px)] justify-center">
           {columnKeys.map((status) => (
             <KanbanColumn
               key={status}

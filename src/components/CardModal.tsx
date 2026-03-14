@@ -122,6 +122,18 @@ export function CardModal({ card, onClose, onSave, onExternalChange }: CardModal
     scheduleSave({ tasks: updated });
   }
 
+  function handleTaskAdd(text: string) {
+    const updated = [...tasks, { text, completed: false }];
+    setTasks(updated);
+    scheduleSave({ tasks: updated });
+  }
+
+  function handleTaskRemove(index: number) {
+    const updated = tasks.filter((_, i) => i !== index);
+    setTasks(updated);
+    scheduleSave({ tasks: updated });
+  }
+
   function handleBackdropClick(e: React.MouseEvent<HTMLDivElement>) {
     if (e.target === e.currentTarget) onClose();
   }
@@ -180,6 +192,8 @@ export function CardModal({ card, onClose, onSave, onExternalChange }: CardModal
           onCommentsChange={setComments}
           onCommentsBlur={handleCommentsBlur}
           onTaskToggle={handleTaskToggle}
+          onTaskAdd={handleTaskAdd}
+          onTaskRemove={handleTaskRemove}
         />
       </div>
     </div>
@@ -204,6 +218,8 @@ interface CardModalFieldsProps {
   onCommentsChange: (v: string) => void;
   onCommentsBlur: () => void;
   onTaskToggle: (index: number) => void;
+  onTaskAdd: (text: string) => void;
+  onTaskRemove: (index: number) => void;
 }
 
 function CardModalFields({
@@ -224,7 +240,10 @@ function CardModalFields({
   onCommentsChange,
   onCommentsBlur,
   onTaskToggle,
+  onTaskAdd,
+  onTaskRemove,
 }: CardModalFieldsProps) {
+  const [newTaskText, setNewTaskText] = useState('');
   return (
     <div className="space-y-4">
       {/* Title */}
@@ -258,6 +277,11 @@ function CardModalFields({
             onChange={(e) => onStatusChange(e.target.value)}
             className={inputClass}
           >
+            {status === null && (
+              <option value="" disabled>
+                -- Select status --
+              </option>
+            )}
             {statuses.map((s) => (
               <option key={s} value={s}>{s}</option>
             ))}
@@ -298,12 +322,12 @@ function CardModalFields({
       </div>
 
       {/* Tasks */}
-      {tasks.length > 0 && (
-        <div>
-          <span className="block text-xs text-obsidian-muted mb-1">Tasks</span>
-          <ul className="space-y-1">
+      <div>
+        <span className="block text-xs text-obsidian-muted mb-1">Tasks</span>
+        {tasks.length > 0 && (
+          <ul className="space-y-1 mb-2">
             {tasks.map((task, i) => (
-              <li key={i} className="flex items-center gap-2">
+              <li key={i} className="flex items-center gap-2 group">
                 <input
                   type="checkbox"
                   checked={task.completed}
@@ -312,15 +336,50 @@ function CardModalFields({
                   aria-label={`Task: ${task.text}`}
                 />
                 <span
-                  className={`text-sm ${task.completed ? 'line-through text-obsidian-muted' : 'text-obsidian-text'}`}
+                  className={`text-sm flex-1 ${task.completed ? 'line-through text-obsidian-muted' : 'text-obsidian-text'}`}
                 >
                   {task.text}
                 </span>
+                <button
+                  onClick={() => onTaskRemove(i)}
+                  className="text-obsidian-muted hover:text-priority-p0 opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+                  aria-label={`Remove task: ${task.text}`}
+                >
+                  &#x2715;
+                </button>
               </li>
             ))}
           </ul>
+        )}
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={newTaskText}
+            onChange={(e) => setNewTaskText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && newTaskText.trim()) {
+                e.preventDefault();
+                onTaskAdd(newTaskText.trim());
+                setNewTaskText('');
+              }
+            }}
+            placeholder="Add a task..."
+            className={`${inputClass} flex-1`}
+          />
+          <button
+            type="button"
+            onClick={() => {
+              if (newTaskText.trim()) {
+                onTaskAdd(newTaskText.trim());
+                setNewTaskText('');
+              }
+            }}
+            className="bg-obsidian-card border border-obsidian-border text-obsidian-muted px-3 py-2 rounded-input text-sm hover:border-obsidian-accent hover:text-obsidian-text transition-colors"
+          >
+            Add
+          </button>
         </div>
-      )}
+      </div>
 
       {/* Comments */}
       <div>

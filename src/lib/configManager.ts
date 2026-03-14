@@ -28,6 +28,7 @@ export function saveConfig(partial: Partial<MindBoardConfig>): MindBoardConfig {
       partial.lastSelectedProject !== undefined
         ? partial.lastSelectedProject
         : (existing?.lastSelectedProject ?? null),
+    theme: partial.theme ?? existing?.theme,
   };
 
   const configPath = getConfigPath();
