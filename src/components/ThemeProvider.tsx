@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import type { ThemeColors } from '@/types/config';
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [loaded, setLoaded] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     async function loadTheme() {
@@ -24,7 +26,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
 
     loadTheme();
-  }, []);
+  }, [pathname]);
 
   if (!loaded) {
     return null;
