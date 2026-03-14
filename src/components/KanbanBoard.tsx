@@ -85,6 +85,16 @@ export function KanbanBoard({ project, sortBy }: KanbanBoardProps) {
   const selectedCardRef = useRef<Card | null>(null);
   selectedCardRef.current = selectedCard;
 
+  // Track files recently written by this app to suppress false "external change" alerts
+  const recentAppWritesRef = useRef<Set<string>>(new Set());
+
+  function markAppWrite(filename: string) {
+    recentAppWritesRef.current.add(filename);
+    setTimeout(() => {
+      recentAppWritesRef.current.delete(filename);
+    }, 2000);
+  }
+
   const fetchCards = useCallback(async () => {
     try {
       const res = await fetch(
@@ -93,8 +103,22 @@ export function KanbanBoard({ project, sortBy }: KanbanBoardProps) {
       const data = await res.json();
       const fetched: Card[] = data.cards ?? [];
       setCards(fetched);
+    } catch {
+      setToast({ message: 'Failed to load cards', type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  }, [project]);
 
-      // Update selectedCard if it exists in the new data
+  const fetchAndSyncSelected = useCallback(async () => {
+    try {
+      const res = await fetch(
+        `/api/cards?project=${encodeURIComponent(project)}`
+      );
+      const data = await res.json();
+      const fetched: Card[] = data.cards ?? [];
+      setCards(fetched);
+
       if (selectedCardRef.current) {
         const updated = fetched.find(
           (c) => c.filename === selectedCardRef.current?.filename
@@ -105,8 +129,6 @@ export function KanbanBoard({ project, sortBy }: KanbanBoardProps) {
       }
     } catch {
       setToast({ message: 'Failed to load cards', type: 'error' });
-    } finally {
-      setLoading(false);
     }
   }, [project]);
 
@@ -120,6 +142,12 @@ export function KanbanBoard({ project, sortBy }: KanbanBoardProps) {
       (event) => {
         if (event.project !== project) return;
 
+        // Ignore SSE events for files the app itself just wrote
+        if (recentAppWritesRef.current.has(event.filename)) {
+          fetchCards();
+          return;
+        }
+
         if (
           selectedCardRef.current &&
           selectedCardRef.current.filename === event.filename
@@ -129,11 +157,12 @@ export function KanbanBoard({ project, sortBy }: KanbanBoardProps) {
             message: 'Card was modified externally',
             type: 'info',
           });
+          fetchAndSyncSelected();
+        } else {
+          fetchCards();
         }
-
-        fetchCards();
       },
-      [project, fetchCards]
+      [project, fetchCards, fetchAndSyncSelected]
     )
   );
 
@@ -145,12 +174,13 @@ export function KanbanBoard({ project, sortBy }: KanbanBoardProps) {
     const card = cards.find((c) => c.filename === draggableId);
     if (!card || card.status === newStatus) return;
 
-    // Optimistic update
     setCards((prev) =>
       prev.map((c) =>
         c.filename === draggableId ? { ...c, status: newStatus } : c
       )
     );
+
+    markAppWrite(draggableId);
 
     try {
       await fetch(
@@ -169,6 +199,8 @@ export function KanbanBoard({ project, sortBy }: KanbanBoardProps) {
 
   async function handleCardSave(updates: Partial<Card>) {
     if (!selectedCard) return;
+
+    markAppWrite(selectedCard.filename);
 
     try {
       const res = await fetch(
