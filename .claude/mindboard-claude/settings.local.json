@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(yes n:*)",
+      "Bash(mv mindboard-prd.md /tmp/mindboard-prd.md && mv docs /tmp/mindboard-docs && yes n | npx create-next-app@latest . --typescript --tailwind --app --src-dir --eslint --no-turbopack --import-alias \"@/*\" --use-npm 2>&1)",
+      "Bash(npx create-next-app@latest /Users/dawsonpar/dp/mindboard --typescript --tailwind --app --src-dir --eslint --no-turbopack --import-alias \"@/*\" --use-npm)"
+    ]
+  }
+}
