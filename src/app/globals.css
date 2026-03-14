@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-@theme inline {
+@theme {
   --color-obsidian-bg: #1e1e1e;
   --color-obsidian-panel: #252525;
   --color-obsidian-card: #2d2d2d;
