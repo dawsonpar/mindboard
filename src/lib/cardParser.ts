@@ -65,6 +65,15 @@ function parsePriority(raw: string | undefined): CardPriority | null {
   return null;
 }
 
+function parseReferences(raw: string | undefined): string[] {
+  if (!raw) return [];
+  return raw
+    .split('\n')
+    .filter((line) => line.startsWith('- '))
+    .map((line) => line.slice(2).trim())
+    .filter(Boolean);
+}
+
 function parseTasks(raw: string | undefined): Task[] {
   if (!raw) return [];
 
@@ -137,6 +146,7 @@ export function parseCardContent(
 
   const description = findSection(rawSections, 'Description') ?? '';
   const tasks = parseTasks(findSection(rawSections, 'Tasks'));
+  const references = parseReferences(findSection(rawSections, 'References'));
   const comments = findSection(rawSections, 'Comments') ?? '';
 
   return {
@@ -148,6 +158,7 @@ export function parseCardContent(
     priority,
     description,
     tasks,
+    references,
     comments,
     createdAt: new Date(stats.birthtimeMs).toISOString(),
     modifiedAt: new Date(stats.mtimeMs).toISOString(),

@@ -6,6 +6,7 @@ const KNOWN_SECTIONS = new Set([
   'priority',
   'description',
   'tasks',
+  'references',
   'comments',
 ]);
 
@@ -13,6 +14,10 @@ function formatTasks(tasks: Task[]): string {
   return tasks
     .map((t) => (t.completed ? `- [x] ${t.text}` : `- [ ] ${t.text}`))
     .join('\n');
+}
+
+function formatReferences(references: string[]): string {
+  return references.map((r) => `- ${r}`).join('\n');
 }
 
 function getKnownSectionContent(card: Card, heading: string): string {
@@ -27,6 +32,8 @@ function getKnownSectionContent(card: Card, heading: string): string {
       return card.description;
     case 'tasks':
       return formatTasks(card.tasks);
+    case 'references':
+      return formatReferences(card.references);
     case 'comments':
       return card.comments;
     default:
@@ -43,6 +50,9 @@ export function cardToMarkdown(card: Card): string {
     writtenSections.add(key);
 
     if (KNOWN_SECTIONS.has(key)) {
+      // Omit References section entirely when empty
+      if (key === 'references' && card.references.length === 0) continue;
+
       const content = getKnownSectionContent(card, section.heading);
       lines.push(`## ${section.heading}`);
       if (content) {
@@ -78,6 +88,16 @@ export function cardToMarkdown(card: Card): string {
   appendIfMissing('Priority');
   appendIfMissing('Description');
   appendIfMissing('Tasks');
+
+  // Append References only when non-empty and not already written
+  if (card.references.length > 0 && !writtenSections.has('references')) {
+    const content = formatReferences(card.references);
+    lines.push('## References');
+    lines.push('');
+    lines.push(content);
+    lines.push('');
+  }
+
   appendIfMissing('Comments');
 
   let result = lines.join('\n');

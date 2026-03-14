@@ -267,11 +267,16 @@ export function KanbanBoard({ project, sortBy }: KanbanBoardProps) {
       {selectedCard && (
         <CardModal
           card={selectedCard}
+          allCards={cards}
           onClose={() => {
             setSelectedCard(null);
             setExternalChange(false);
           }}
           onSave={handleCardSave}
+          onNavigate={(target) => {
+            setSelectedCard(target);
+            setExternalChange(false);
+          }}
           onExternalChange={externalChange}
         />
       )}

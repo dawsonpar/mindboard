@@ -17,6 +17,7 @@ interface CardUpdateBody {
   priority?: CardPriority;
   description?: string;
   tasks?: Task[];
+  references?: string[];
   comments?: string;
 }
 
@@ -50,6 +51,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     mtimeMs: stats.mtimeMs,
   });
 
+  const newReferences = body.references !== undefined ? body.references : card.references;
+
   const updated: Card = {
     ...card,
     title: body.title ?? card.title,
@@ -57,6 +60,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     priority: body.priority !== undefined ? body.priority : card.priority,
     description: body.description ?? card.description,
     tasks: body.tasks ?? card.tasks,
+    references: newReferences,
     comments: body.comments ?? card.comments,
   };
 
@@ -64,6 +68,49 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
   markRecentWrite(absolutePath);
   fs.writeFileSync(absolutePath, markdown, 'utf-8');
+
+  // Bidirectional sync: update backlinks in referenced cards
+  if (body.references !== undefined) {
+    const oldRefs = new Set(card.references);
+    const newRefs = new Set(newReferences);
+    const added = newReferences.filter((r) => !oldRefs.has(r));
+    const removed = card.references.filter((r) => !newRefs.has(r));
+
+    for (const refFilename of added) {
+      const refPath = path.join(rootDir, project, refFilename);
+      if (!fs.existsSync(refPath)) continue;
+      const refContent = fs.readFileSync(refPath, 'utf-8');
+      const refStats = fs.statSync(refPath);
+      const refCard = parseCardContent(refContent, refFilename, project, refPath, {
+        birthtimeMs: refStats.birthtimeMs,
+        mtimeMs: refStats.mtimeMs,
+      });
+      if (!refCard.references.includes(filename)) {
+        const updatedRef = { ...refCard, references: [...refCard.references, filename] };
+        markRecentWrite(refPath);
+        fs.writeFileSync(refPath, cardToMarkdown(updatedRef), 'utf-8');
+      }
+    }
+
+    for (const refFilename of removed) {
+      const refPath = path.join(rootDir, project, refFilename);
+      if (!fs.existsSync(refPath)) continue;
+      const refContent = fs.readFileSync(refPath, 'utf-8');
+      const refStats = fs.statSync(refPath);
+      const refCard = parseCardContent(refContent, refFilename, project, refPath, {
+        birthtimeMs: refStats.birthtimeMs,
+        mtimeMs: refStats.mtimeMs,
+      });
+      if (refCard.references.includes(filename)) {
+        const updatedRef = {
+          ...refCard,
+          references: refCard.references.filter((r) => r !== filename),
+        };
+        markRecentWrite(refPath);
+        fs.writeFileSync(refPath, cardToMarkdown(updatedRef), 'utf-8');
+      }
+    }
+  }
 
   const newStats = fs.statSync(absolutePath);
   const resultCard = parseCardContent(

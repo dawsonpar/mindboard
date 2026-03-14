@@ -5,8 +5,10 @@ import type { Card, CardStatus, CardPriority, Task } from '@/types/card';
 
 interface CardModalProps {
   card: Card;
+  allCards: Card[];
   onClose: () => void;
   onSave: (updates: Partial<Card>) => void;
+  onNavigate: (card: Card) => void;
   onExternalChange?: boolean;
 }
 
@@ -16,12 +18,13 @@ const priorities: (CardPriority | '')[] = ['', 'P0', 'P1', 'P2', 'P3'];
 const inputClass =
   'w-full bg-obsidian-bg border border-obsidian-border rounded-input text-obsidian-text p-2 text-sm focus:outline-none focus:border-obsidian-accent';
 
-export function CardModal({ card, onClose, onSave, onExternalChange }: CardModalProps) {
+export function CardModal({ card, allCards, onClose, onSave, onNavigate, onExternalChange }: CardModalProps) {
   const [title, setTitle] = useState(card.title);
   const [status, setStatus] = useState<CardStatus | null>(card.status);
   const [priority, setPriority] = useState<CardPriority | null>(card.priority);
   const [description, setDescription] = useState(card.description);
   const [tasks, setTasks] = useState<Task[]>(card.tasks);
+  const [references, setReferences] = useState<string[]>(card.references);
   const [comments, setComments] = useState(card.comments);
   const [titleError, setTitleError] = useState('');
 
@@ -35,6 +38,7 @@ export function CardModal({ card, onClose, onSave, onExternalChange }: CardModal
     setPriority(card.priority);
     setDescription(card.description);
     setTasks(card.tasks);
+    setReferences(card.references);
     setComments(card.comments);
   }, [card]);
 
@@ -134,6 +138,19 @@ export function CardModal({ card, onClose, onSave, onExternalChange }: CardModal
     scheduleSave({ tasks: updated });
   }
 
+  function handleReferenceAdd(filename: string) {
+    if (references.includes(filename)) return;
+    const updated = [...references, filename];
+    setReferences(updated);
+    scheduleSave({ references: updated });
+  }
+
+  function handleReferenceRemove(filename: string) {
+    const updated = references.filter((r) => r !== filename);
+    setReferences(updated);
+    scheduleSave({ references: updated });
+  }
+
   function handleBackdropClick(e: React.MouseEvent<HTMLDivElement>) {
     if (e.target === e.currentTarget) onClose();
   }
@@ -182,6 +199,9 @@ export function CardModal({ card, onClose, onSave, onExternalChange }: CardModal
           description={description}
           comments={comments}
           tasks={tasks}
+          references={references}
+          allCards={allCards}
+          currentFilename={card.filename}
           absolutePath={card.absolutePath}
           onTitleChange={setTitle}
           onTitleBlur={handleTitleBlur}
@@ -194,6 +214,9 @@ export function CardModal({ card, onClose, onSave, onExternalChange }: CardModal
           onTaskToggle={handleTaskToggle}
           onTaskAdd={handleTaskAdd}
           onTaskRemove={handleTaskRemove}
+          onReferenceAdd={handleReferenceAdd}
+          onReferenceRemove={handleReferenceRemove}
+          onNavigate={onNavigate}
         />
       </div>
     </div>
@@ -208,6 +231,9 @@ interface CardModalFieldsProps {
   description: string;
   comments: string;
   tasks: Task[];
+  references: string[];
+  allCards: Card[];
+  currentFilename: string;
   absolutePath: string;
   onTitleChange: (v: string) => void;
   onTitleBlur: () => void;
@@ -220,6 +246,9 @@ interface CardModalFieldsProps {
   onTaskToggle: (index: number) => void;
   onTaskAdd: (text: string) => void;
   onTaskRemove: (index: number) => void;
+  onReferenceAdd: (filename: string) => void;
+  onReferenceRemove: (filename: string) => void;
+  onNavigate: (card: Card) => void;
 }
 
 function CardModalFields({
@@ -230,6 +259,9 @@ function CardModalFields({
   description,
   comments,
   tasks,
+  references,
+  allCards,
+  currentFilename,
   absolutePath,
   onTitleChange,
   onTitleBlur,
@@ -242,8 +274,23 @@ function CardModalFields({
   onTaskToggle,
   onTaskAdd,
   onTaskRemove,
+  onReferenceAdd,
+  onReferenceRemove,
+  onNavigate,
 }: CardModalFieldsProps) {
   const [newTaskText, setNewTaskText] = useState('');
+  const [refSearch, setRefSearch] = useState('');
+  const [refDropdownOpen, setRefDropdownOpen] = useState(false);
+  const refSearchRef = useRef<HTMLInputElement>(null);
+
+  const refCandidates = allCards.filter(
+    (c) => c.filename !== currentFilename && !references.includes(c.filename)
+  );
+  const filteredCandidates = refSearch.trim()
+    ? refCandidates.filter((c) =>
+        c.title.toLowerCase().includes(refSearch.toLowerCase())
+      )
+    : refCandidates;
   return (
     <div className="space-y-4">
       {/* Title */}
@@ -378,6 +425,71 @@ function CardModalFields({
           >
             Add
           </button>
+        </div>
+      </div>
+
+      {/* References */}
+      <div>
+        <span className="block text-xs text-obsidian-muted mb-1">References</span>
+        {references.length > 0 && (
+          <ul className="space-y-1 mb-2">
+            {references.map((ref) => {
+              const refCard = allCards.find((c) => c.filename === ref);
+              return (
+                <li key={ref} className="flex items-center gap-2 group">
+                  <button
+                    onClick={() => refCard && onNavigate(refCard)}
+                    disabled={!refCard}
+                    className="flex-1 text-left text-sm text-obsidian-text hover:text-obsidian-accent hover:underline disabled:text-obsidian-muted disabled:no-underline truncate transition-colors"
+                    aria-label={`Open card: ${refCard?.title ?? ref}`}
+                  >
+                    {refCard?.title ?? ref}
+                  </button>
+                  <button
+                    onClick={() => onReferenceRemove(ref)}
+                    className="text-obsidian-muted hover:text-priority-p0 opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+                    aria-label={`Remove reference: ${refCard?.title ?? ref}`}
+                  >
+                    &#x2715;
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        <div className="relative">
+          <input
+            ref={refSearchRef}
+            type="text"
+            value={refSearch}
+            onChange={(e) => {
+              setRefSearch(e.target.value);
+              setRefDropdownOpen(true);
+            }}
+            onFocus={() => setRefDropdownOpen(true)}
+            onBlur={() => setTimeout(() => setRefDropdownOpen(false), 150)}
+            placeholder="Link a card..."
+            className={`${inputClass} w-full`}
+          />
+          {refDropdownOpen && filteredCandidates.length > 0 && (
+            <ul className="absolute z-50 w-full mt-1 bg-obsidian-panel border border-obsidian-border rounded-input max-h-40 overflow-y-auto">
+              {filteredCandidates.map((c) => (
+                <li key={c.filename}>
+                  <button
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      onReferenceAdd(c.filename);
+                      setRefSearch('');
+                      setRefDropdownOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-1.5 text-sm text-obsidian-text hover:bg-obsidian-card truncate"
+                  >
+                    {c.title}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
 

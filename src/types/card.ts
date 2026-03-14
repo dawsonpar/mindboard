@@ -15,6 +15,7 @@ export interface Card {
   priority: CardPriority | null;
   description: string;
   tasks: Task[];
+  references: string[];
   comments: string;
   createdAt: string;
   modifiedAt: string;

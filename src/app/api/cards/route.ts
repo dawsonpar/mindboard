@@ -127,6 +127,7 @@ export async function POST(request: NextRequest) {
     priority: body.priority ?? null,
     description: body.description ?? '',
     tasks: [],
+    references: [],
     comments: '',
     createdAt: now,
     modifiedAt: now,
