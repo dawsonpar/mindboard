@@ -249,18 +249,20 @@ export function KanbanBoard({ project, sortBy }: KanbanBoardProps) {
   }
 
   return (
-    <>
+    <div className="flex flex-col flex-1 min-h-0">
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="flex gap-4 p-4 overflow-x-auto h-[calc(100vh-56px)] justify-center">
-          {columnKeys.map((status) => (
-            <KanbanColumn
-              key={status}
-              status={status}
-              cards={grouped[status] ?? []}
-              onCardClick={setSelectedCard}
-              droppedFilename={droppedFilename}
-            />
-          ))}
+        <div className="overflow-x-auto flex-1 min-h-0">
+          <div className="flex gap-4 p-4 w-max mx-auto min-h-full">
+            {columnKeys.map((status) => (
+              <KanbanColumn
+                key={status}
+                status={status}
+                cards={grouped[status] ?? []}
+                onCardClick={setSelectedCard}
+                droppedFilename={droppedFilename}
+              />
+            ))}
+          </div>
         </div>
       </DragDropContext>
 
@@ -288,6 +290,6 @@ export function KanbanBoard({ project, sortBy }: KanbanBoardProps) {
           onDismiss={() => setToast(null)}
         />
       )}
-    </>
+    </div>
   );
 }
