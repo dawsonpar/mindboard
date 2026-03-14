@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-obsidian-bg: #1e1e1e;
+  --color-obsidian-panel: #252525;
+  --color-obsidian-card: #2d2d2d;
+  --color-obsidian-accent: #7c6f9f;
+  --color-obsidian-text: #dcddde;
+  --color-obsidian-muted: #999999;
+  --color-obsidian-border: #3a3a3a;
+
+  --color-priority-p0: #ef4444;
+  --color-priority-p1: #f97316;
+  --color-priority-p2: #eab308;
+  --color-priority-p3: #3b82f6;
+
+  --radius-card: 6px;
+  --radius-input: 4px;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
