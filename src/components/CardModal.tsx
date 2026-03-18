@@ -10,6 +10,8 @@ interface CardModalProps {
   onSave: (updates: Partial<Card>) => void;
   onNavigate: (card: Card) => void;
   onExternalChange?: boolean;
+  readOnly?: boolean;
+  onRestore?: () => void;
 }
 
 const statuses: CardStatus[] = ['TODO', 'IN PROGRESS', 'REVIEW', 'COMPLETED'];
@@ -18,7 +20,7 @@ const priorities: (CardPriority | '')[] = ['', 'P0', 'P1', 'P2', 'P3'];
 const inputClass =
   'w-full bg-obsidian-bg border border-obsidian-border rounded-input text-obsidian-text p-2 text-sm focus:outline-none focus:border-obsidian-accent';
 
-export function CardModal({ card, allCards, onClose, onSave, onNavigate, onExternalChange }: CardModalProps) {
+export function CardModal({ card, allCards, onClose, onSave, onNavigate, onExternalChange, readOnly, onRestore }: CardModalProps) {
   const [title, setTitle] = useState(card.title);
   const [status, setStatus] = useState<CardStatus | null>(card.status);
   const [priority, setPriority] = useState<CardPriority | null>(card.priority);
@@ -58,13 +60,14 @@ export function CardModal({ card, allCards, onClose, onSave, onNavigate, onExter
     [flushSave]
   );
 
-  // Flush on unmount
+  // Flush on unmount (skip when read-only — no saves should happen)
   useEffect(() => {
+    if (readOnly) return;
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
       flushSave();
     };
-  }, [flushSave]);
+  }, [flushSave, readOnly]);
 
   // Close on Escape key
   useEffect(() => {
@@ -165,16 +168,33 @@ export function CardModal({ card, allCards, onClose, onSave, onNavigate, onExter
     >
       <div className="bg-obsidian-panel border border-obsidian-border rounded-card w-full max-w-2xl max-h-[85vh] overflow-y-auto p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-semibold text-obsidian-text">
-            Edit Card
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-obsidian-muted hover:text-obsidian-text"
-            aria-label="Close modal"
-          >
-            &#x2715;
-          </button>
+          <div className="flex items-center gap-2">
+            <h2 className="text-base font-semibold text-obsidian-text">
+              {readOnly ? 'Archived Card' : 'Edit Card'}
+            </h2>
+            {readOnly && (
+              <span className="text-[10px] text-obsidian-muted border border-obsidian-border px-1.5 py-0.5 rounded-full">
+                read-only
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {readOnly && onRestore && (
+              <button
+                onClick={onRestore}
+                className="text-xs text-obsidian-accent border border-obsidian-accent rounded px-2.5 py-1 hover:bg-obsidian-accent hover:text-obsidian-bg transition-colors"
+              >
+                Restore
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="text-obsidian-muted hover:text-obsidian-text"
+              aria-label="Close modal"
+            >
+              &#x2715;
+            </button>
+          </div>
         </div>
 
         {onExternalChange && (
@@ -203,6 +223,7 @@ export function CardModal({ card, allCards, onClose, onSave, onNavigate, onExter
           allCards={allCards}
           currentFilename={card.filename}
           absolutePath={card.absolutePath}
+          readOnly={readOnly}
           onTitleChange={setTitle}
           onTitleBlur={handleTitleBlur}
           onStatusChange={handleStatusChange}
@@ -235,6 +256,7 @@ interface CardModalFieldsProps {
   allCards: Card[];
   currentFilename: string;
   absolutePath: string;
+  readOnly?: boolean;
   onTitleChange: (v: string) => void;
   onTitleBlur: () => void;
   onStatusChange: (v: string) => void;
@@ -263,6 +285,7 @@ function CardModalFields({
   allCards,
   currentFilename,
   absolutePath,
+  readOnly,
   onTitleChange,
   onTitleBlur,
   onStatusChange,
@@ -304,8 +327,9 @@ function CardModalFields({
           value={title}
           onChange={(e) => onTitleChange(e.target.value)}
           onBlur={onTitleBlur}
-          className={inputClass}
+          className={`${inputClass} disabled:opacity-60 disabled:cursor-default`}
           maxLength={72}
+          disabled={readOnly}
         />
         {titleError && (
           <p className="text-priority-p0 text-xs mt-1">{titleError}</p>
@@ -322,7 +346,8 @@ function CardModalFields({
             id="card-status"
             value={status ?? ''}
             onChange={(e) => onStatusChange(e.target.value)}
-            className={inputClass}
+            className={`${inputClass} disabled:opacity-60 disabled:cursor-default`}
+            disabled={readOnly}
           >
             {status === null && (
               <option value="" disabled>
@@ -342,7 +367,8 @@ function CardModalFields({
             id="card-priority"
             value={priority ?? ''}
             onChange={(e) => onPriorityChange(e.target.value)}
-            className={inputClass}
+            className={`${inputClass} disabled:opacity-60 disabled:cursor-default`}
+            disabled={readOnly}
           >
             {priorities.map((p) => (
               <option key={p} value={p}>
@@ -364,7 +390,8 @@ function CardModalFields({
           onChange={(e) => onDescriptionChange(e.target.value)}
           onBlur={onDescriptionBlur}
           rows={4}
-          className={`${inputClass} resize-y`}
+          className={`${inputClass} resize-y disabled:opacity-60 disabled:cursor-default`}
+          disabled={readOnly}
         />
       </div>
 
@@ -379,53 +406,58 @@ function CardModalFields({
                   type="checkbox"
                   checked={task.completed}
                   onChange={() => onTaskToggle(i)}
-                  className="accent-obsidian-accent"
+                  className="accent-obsidian-accent disabled:cursor-default"
                   aria-label={`Task: ${task.text}`}
+                  disabled={readOnly}
                 />
                 <span
                   className={`text-sm flex-1 ${task.completed ? 'line-through text-obsidian-muted' : 'text-obsidian-text'}`}
                 >
                   {task.text}
                 </span>
-                <button
-                  onClick={() => onTaskRemove(i)}
-                  className="text-obsidian-muted hover:text-priority-p0 opacity-0 group-hover:opacity-100 transition-opacity text-xs"
-                  aria-label={`Remove task: ${task.text}`}
-                >
-                  &#x2715;
-                </button>
+                {!readOnly && (
+                  <button
+                    onClick={() => onTaskRemove(i)}
+                    className="text-obsidian-muted hover:text-priority-p0 opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+                    aria-label={`Remove task: ${task.text}`}
+                  >
+                    &#x2715;
+                  </button>
+                )}
               </li>
             ))}
           </ul>
         )}
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={newTaskText}
-            onChange={(e) => setNewTaskText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && newTaskText.trim()) {
-                e.preventDefault();
-                onTaskAdd(newTaskText.trim());
-                setNewTaskText('');
-              }
-            }}
-            placeholder="Add a task..."
-            className={`${inputClass} flex-1`}
-          />
-          <button
-            type="button"
-            onClick={() => {
-              if (newTaskText.trim()) {
-                onTaskAdd(newTaskText.trim());
-                setNewTaskText('');
-              }
-            }}
-            className="bg-obsidian-card border border-obsidian-border text-obsidian-muted px-3 py-2 rounded-input text-sm hover:border-obsidian-accent hover:text-obsidian-text transition-colors"
-          >
-            Add
-          </button>
-        </div>
+        {!readOnly && (
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newTaskText}
+              onChange={(e) => setNewTaskText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && newTaskText.trim()) {
+                  e.preventDefault();
+                  onTaskAdd(newTaskText.trim());
+                  setNewTaskText('');
+                }
+              }}
+              placeholder="Add a task..."
+              className={`${inputClass} flex-1`}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                if (newTaskText.trim()) {
+                  onTaskAdd(newTaskText.trim());
+                  setNewTaskText('');
+                }
+              }}
+              className="bg-obsidian-card border border-obsidian-border text-obsidian-muted px-3 py-2 rounded-input text-sm hover:border-obsidian-accent hover:text-obsidian-text transition-colors"
+            >
+              Add
+            </button>
+          </div>
+        )}
       </div>
 
       {/* References */}
@@ -445,52 +477,56 @@ function CardModalFields({
                   >
                     {refCard?.title ?? ref}
                   </button>
-                  <button
-                    onClick={() => onReferenceRemove(ref)}
-                    className="text-obsidian-muted hover:text-priority-p0 opacity-0 group-hover:opacity-100 transition-opacity text-xs"
-                    aria-label={`Remove reference: ${refCard?.title ?? ref}`}
-                  >
-                    &#x2715;
-                  </button>
+                  {!readOnly && (
+                    <button
+                      onClick={() => onReferenceRemove(ref)}
+                      className="text-obsidian-muted hover:text-priority-p0 opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+                      aria-label={`Remove reference: ${refCard?.title ?? ref}`}
+                    >
+                      &#x2715;
+                    </button>
+                  )}
                 </li>
               );
             })}
           </ul>
         )}
-        <div className="relative">
-          <input
-            ref={refSearchRef}
-            type="text"
-            value={refSearch}
-            onChange={(e) => {
-              setRefSearch(e.target.value);
-              setRefDropdownOpen(true);
-            }}
-            onFocus={() => setRefDropdownOpen(true)}
-            onBlur={() => setTimeout(() => setRefDropdownOpen(false), 150)}
-            placeholder="Link a card..."
-            className={`${inputClass} w-full`}
-          />
-          {refDropdownOpen && filteredCandidates.length > 0 && (
-            <ul className="absolute z-50 w-full mt-1 bg-obsidian-panel border border-obsidian-border rounded-input max-h-40 overflow-y-auto">
-              {filteredCandidates.map((c) => (
-                <li key={c.filename}>
-                  <button
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      onReferenceAdd(c.filename);
-                      setRefSearch('');
-                      setRefDropdownOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-1.5 text-sm text-obsidian-text hover:bg-obsidian-card truncate"
-                  >
-                    {c.title}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        {!readOnly && (
+          <div className="relative">
+            <input
+              ref={refSearchRef}
+              type="text"
+              value={refSearch}
+              onChange={(e) => {
+                setRefSearch(e.target.value);
+                setRefDropdownOpen(true);
+              }}
+              onFocus={() => setRefDropdownOpen(true)}
+              onBlur={() => setTimeout(() => setRefDropdownOpen(false), 150)}
+              placeholder="Link a card..."
+              className={`${inputClass} w-full`}
+            />
+            {refDropdownOpen && filteredCandidates.length > 0 && (
+              <ul className="absolute z-50 w-full mt-1 bg-obsidian-panel border border-obsidian-border rounded-input max-h-40 overflow-y-auto">
+                {filteredCandidates.map((c) => (
+                  <li key={c.filename}>
+                    <button
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        onReferenceAdd(c.filename);
+                        setRefSearch('');
+                        setRefDropdownOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-1.5 text-sm text-obsidian-text hover:bg-obsidian-card truncate"
+                    >
+                      {c.title}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Comments */}
@@ -504,7 +540,8 @@ function CardModalFields({
           onChange={(e) => onCommentsChange(e.target.value)}
           onBlur={onCommentsBlur}
           rows={3}
-          className={`${inputClass} resize-y`}
+          className={`${inputClass} resize-y disabled:opacity-60 disabled:cursor-default`}
+          disabled={readOnly}
         />
       </div>
 

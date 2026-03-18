@@ -29,13 +29,20 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ cards: [] });
   }
 
-  const entries = fs.readdirSync(projectDir, { withFileTypes: true });
+  const isArchived = request.nextUrl.searchParams.get('archived') === 'true';
+  const targetDir = isArchived ? path.join(projectDir, 'archive') : projectDir;
+
+  if (!fs.existsSync(targetDir)) {
+    return NextResponse.json({ cards: [] });
+  }
+
+  const entries = fs.readdirSync(targetDir, { withFileTypes: true });
   const cards: Card[] = [];
 
   for (const entry of entries) {
     if (!entry.isFile() || !entry.name.endsWith('.md')) continue;
 
-    const absolutePath = path.join(projectDir, entry.name);
+    const absolutePath = path.join(targetDir, entry.name);
     const content = fs.readFileSync(absolutePath, 'utf-8');
     const stats = fs.statSync(absolutePath);
 
