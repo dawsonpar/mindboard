@@ -9,9 +9,10 @@ interface KanbanColumnProps {
   cards: Card[];
   onCardClick: (card: Card) => void;
   droppedFilename?: string | null;
+  onArchive?: (filename: string) => void;
 }
 
-export function KanbanColumn({ status, cards, onCardClick, droppedFilename }: KanbanColumnProps) {
+export function KanbanColumn({ status, cards, onCardClick, droppedFilename, onArchive }: KanbanColumnProps) {
   return (
     <div className="bg-obsidian-panel rounded-card flex flex-col min-w-[280px] w-[280px] max-h-full">
       <div className="flex items-center justify-between px-3 py-2.5 border-b border-obsidian-border">
@@ -36,6 +37,7 @@ export function KanbanColumn({ status, cards, onCardClick, droppedFilename }: Ka
                 card={card}
                 index={index}
                 onCardClick={onCardClick}
+                onArchive={onArchive}
                 isJustDropped={droppedFilename === card.filename}
               />
             ))}
