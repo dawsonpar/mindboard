@@ -303,6 +303,14 @@ function CardModalFields({
 }: CardModalFieldsProps) {
   const [newTaskText, setNewTaskText] = useState('');
   const [refSearch, setRefSearch] = useState('');
+  const [copied, setCopied] = useState(false);
+
+  function handleCopyPath() {
+    navigator.clipboard.writeText(absolutePath).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  }
   const [refDropdownOpen, setRefDropdownOpen] = useState(false);
   const refSearchRef = useRef<HTMLInputElement>(null);
 
@@ -545,17 +553,25 @@ function CardModalFields({
         />
       </div>
 
-      {/* Open in Obsidian */}
-      <button
-        onClick={() =>
-          window.open(
-            `obsidian://open?path=${encodeURIComponent(absolutePath)}`
-          )
-        }
-        className="bg-obsidian-card border border-obsidian-border text-obsidian-text px-4 py-2 rounded-input text-sm hover:border-obsidian-accent transition-colors"
-      >
-        Open in Obsidian
-      </button>
+      {/* Actions */}
+      <div className="flex items-center gap-2">
+        <button
+          onClick={handleCopyPath}
+          className="bg-obsidian-card border border-obsidian-border text-obsidian-text px-4 py-2 rounded-input text-sm hover:border-obsidian-accent transition-colors"
+        >
+          {copied ? 'Copied!' : 'Copy Path'}
+        </button>
+        <button
+          onClick={() =>
+            window.open(
+              `obsidian://open?path=${encodeURIComponent(absolutePath)}`
+            )
+          }
+          className="bg-obsidian-card border border-obsidian-border text-obsidian-text px-4 py-2 rounded-input text-sm hover:border-obsidian-accent transition-colors"
+        >
+          Open in Obsidian
+        </button>
+      </div>
     </div>
   );
 }
