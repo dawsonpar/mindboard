@@ -65,6 +65,22 @@ function parsePriority(raw: string | undefined): CardPriority | null {
   return null;
 }
 
+const COMPLEXITY_MIN = 1;
+const COMPLEXITY_MAX = 8;
+
+function parseComplexity(raw: string | undefined): number | null {
+  if (raw === undefined) return null;
+  const value = Number(raw.trim());
+  if (
+    !Number.isInteger(value) ||
+    value < COMPLEXITY_MIN ||
+    value > COMPLEXITY_MAX
+  ) {
+    return null;
+  }
+  return value;
+}
+
 function parseReferences(raw: string | undefined): string[] {
   if (!raw) return [];
   return raw
@@ -143,6 +159,7 @@ export function parseCardContent(
 
   const priorityRaw = findSection(rawSections, 'Priority');
   const priority = parsePriority(priorityRaw);
+  const complexity = parseComplexity(findSection(rawSections, 'Complexity'));
 
   const description = findSection(rawSections, 'Description') ?? '';
   const tasks = parseTasks(findSection(rawSections, 'Tasks'));
@@ -156,6 +173,7 @@ export function parseCardContent(
     title,
     status,
     priority,
+    complexity,
     description,
     tasks,
     references,

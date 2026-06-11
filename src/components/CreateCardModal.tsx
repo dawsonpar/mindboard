@@ -9,12 +9,14 @@ interface CreateCardModalProps {
     title: string;
     status?: CardStatus;
     priority?: CardPriority;
+    complexity?: number;
     description?: string;
   }) => void;
 }
 
 const statuses: CardStatus[] = ['TODO', 'IN PROGRESS', 'REVIEW', 'COMPLETED'];
 const priorities: (CardPriority | '')[] = ['', 'P0', 'P1', 'P2', 'P3'];
+const complexityOptions = [1, 2, 3, 4, 5, 6, 7, 8];
 
 const inputClass =
   'w-full bg-obsidian-bg border border-obsidian-border rounded-input text-obsidian-text p-2 text-sm focus:outline-none focus:border-obsidian-accent';
@@ -23,6 +25,7 @@ export function CreateCardModal({ onClose, onCreate }: CreateCardModalProps) {
   const [title, setTitle] = useState('');
   const [status, setStatus] = useState<CardStatus>('TODO');
   const [priority, setPriority] = useState<CardPriority | ''>('');
+  const [complexity, setComplexity] = useState<number | ''>('');
   const [description, setDescription] = useState('');
   const [titleError, setTitleError] = useState('');
 
@@ -43,6 +46,7 @@ export function CreateCardModal({ onClose, onCreate }: CreateCardModalProps) {
       title: title.trim(),
       status,
       priority: priority || undefined,
+      complexity: complexity === '' ? undefined : complexity,
       description: description.trim() || undefined,
     });
   }
@@ -124,6 +128,24 @@ export function CreateCardModal({ onClose, onCreate }: CreateCardModalProps) {
                   <option key={p} value={p}>
                     {p === '' ? 'None' : p}
                   </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex-1">
+              <label htmlFor="new-card-complexity" className="block text-xs text-obsidian-muted mb-1">
+                Complexity
+              </label>
+              <select
+                id="new-card-complexity"
+                value={complexity}
+                onChange={(e) =>
+                  setComplexity(e.target.value === '' ? '' : Number(e.target.value))
+                }
+                className={inputClass}
+              >
+                <option value="">None</option>
+                {complexityOptions.map((c) => (
+                  <option key={c} value={c}>{c}</option>
                 ))}
               </select>
             </div>

@@ -75,6 +75,7 @@ interface CreateCardBody {
   title: string;
   status?: CardStatus;
   priority?: CardPriority;
+  complexity?: number;
   description?: string;
 }
 
@@ -118,6 +119,10 @@ export async function POST(request: NextRequest) {
     { heading: 'Title', content: body.title.trim() },
     { heading: 'Status', content: body.status ?? 'TODO' },
     { heading: 'Priority', content: body.priority ?? '' },
+    {
+      heading: 'Complexity',
+      content: body.complexity != null ? String(body.complexity) : '',
+    },
     { heading: 'Description', content: body.description ?? '' },
     { heading: 'Tasks', content: '' },
     { heading: 'Comments', content: '' },
@@ -132,6 +137,7 @@ export async function POST(request: NextRequest) {
     title: body.title.trim(),
     status: body.status ?? 'TODO',
     priority: body.priority ?? null,
+    complexity: body.complexity ?? null,
     description: body.description ?? '',
     tasks: [],
     references: [],

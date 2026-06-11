@@ -4,6 +4,7 @@ const KNOWN_SECTIONS = new Set([
   'title',
   'status',
   'priority',
+  'complexity',
   'description',
   'tasks',
   'references',
@@ -28,6 +29,8 @@ function getKnownSectionContent(card: Card, heading: string): string {
       return card.status ?? '';
     case 'priority':
       return card.priority ?? '';
+    case 'complexity':
+      return card.complexity != null ? String(card.complexity) : '';
     case 'description':
       return card.description;
     case 'tasks':
@@ -45,6 +48,18 @@ export function cardToMarkdown(card: Card): string {
   const lines: string[] = [];
   const writtenSections = new Set<string>();
 
+  const hasComplexitySection = card.rawSections.some(
+    (s) => s.heading.toLowerCase() === 'complexity'
+  );
+
+  const writeComplexity = () => {
+    lines.push('## Complexity');
+    lines.push('');
+    lines.push(String(card.complexity));
+    lines.push('');
+    writtenSections.add('complexity');
+  };
+
   for (const section of card.rawSections) {
     const key = section.heading.toLowerCase();
     writtenSections.add(key);
@@ -52,6 +67,8 @@ export function cardToMarkdown(card: Card): string {
     if (KNOWN_SECTIONS.has(key)) {
       // Omit References section entirely when empty
       if (key === 'references' && card.references.length === 0) continue;
+      // Omit Complexity section when unset
+      if (key === 'complexity' && card.complexity == null) continue;
 
       const content = getKnownSectionContent(card, section.heading);
       lines.push(`## ${section.heading}`);
@@ -67,6 +84,12 @@ export function cardToMarkdown(card: Card): string {
         lines.push(section.content);
       }
       lines.push('');
+    }
+
+    // Keep Complexity directly after Priority when the card lacks its own
+    // Complexity section.
+    if (key === 'priority' && card.complexity != null && !hasComplexitySection) {
+      writeComplexity();
     }
   }
 
@@ -86,6 +109,9 @@ export function cardToMarkdown(card: Card): string {
   appendIfMissing('Title');
   appendIfMissing('Status');
   appendIfMissing('Priority');
+  if (card.complexity != null && !writtenSections.has('complexity')) {
+    writeComplexity();
+  }
   appendIfMissing('Description');
   appendIfMissing('Tasks');
 

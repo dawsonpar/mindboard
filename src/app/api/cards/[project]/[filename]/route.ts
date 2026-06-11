@@ -15,6 +15,7 @@ interface CardUpdateBody {
   title?: string;
   status?: CardStatus;
   priority?: CardPriority;
+  complexity?: number | null;
   description?: string;
   tasks?: Task[];
   references?: string[];
@@ -58,6 +59,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     title: body.title ?? card.title,
     status: body.status !== undefined ? body.status : card.status,
     priority: body.priority !== undefined ? body.priority : card.priority,
+    complexity:
+      body.complexity !== undefined ? body.complexity : card.complexity,
     description: body.description ?? card.description,
     tasks: body.tasks ?? card.tasks,
     references: newReferences,

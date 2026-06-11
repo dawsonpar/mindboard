@@ -50,6 +50,11 @@ function sortCards(cards: Card[], sortBy: SortOption): Card[] {
         return (
           new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime()
         );
+      case "complexity": {
+        const ca = a.complexity ?? -1;
+        const cb = b.complexity ?? -1;
+        return cb - ca;
+      }
       default:
         return 0;
     }

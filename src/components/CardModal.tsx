@@ -16,6 +16,7 @@ interface CardModalProps {
 
 const statuses: CardStatus[] = ['TODO', 'IN PROGRESS', 'REVIEW', 'COMPLETED'];
 const priorities: (CardPriority | '')[] = ['', 'P0', 'P1', 'P2', 'P3'];
+const complexityOptions = [1, 2, 3, 4, 5, 6, 7, 8];
 
 const inputClass =
   'w-full bg-obsidian-bg border border-obsidian-border rounded-input text-obsidian-text p-2 text-sm focus:outline-none focus:border-obsidian-accent';
@@ -24,6 +25,7 @@ export function CardModal({ card, allCards, onClose, onSave, onNavigate, onExter
   const [title, setTitle] = useState(card.title);
   const [status, setStatus] = useState<CardStatus | null>(card.status);
   const [priority, setPriority] = useState<CardPriority | null>(card.priority);
+  const [complexity, setComplexity] = useState<number | null>(card.complexity);
   const [description, setDescription] = useState(card.description);
   const [tasks, setTasks] = useState<Task[]>(card.tasks);
   const [references, setReferences] = useState<string[]>(card.references);
@@ -38,6 +40,7 @@ export function CardModal({ card, allCards, onClose, onSave, onNavigate, onExter
     setTitle(card.title);
     setStatus(card.status);
     setPriority(card.priority);
+    setComplexity(card.complexity);
     setDescription(card.description);
     setTasks(card.tasks);
     setReferences(card.references);
@@ -107,6 +110,12 @@ export function CardModal({ card, allCards, onClose, onSave, onNavigate, onExter
     const newPriority = value === '' ? null : (value as CardPriority);
     setPriority(newPriority);
     scheduleSave({ priority: newPriority });
+  }
+
+  function handleComplexityChange(value: string) {
+    const newComplexity = value === '' ? null : Number(value);
+    setComplexity(newComplexity);
+    scheduleSave({ complexity: newComplexity });
   }
 
   function handleDescriptionBlur() {
@@ -216,6 +225,7 @@ export function CardModal({ card, allCards, onClose, onSave, onNavigate, onExter
           titleError={titleError}
           status={status}
           priority={priority}
+          complexity={complexity}
           description={description}
           comments={comments}
           tasks={tasks}
@@ -228,6 +238,7 @@ export function CardModal({ card, allCards, onClose, onSave, onNavigate, onExter
           onTitleBlur={handleTitleBlur}
           onStatusChange={handleStatusChange}
           onPriorityChange={handlePriorityChange}
+          onComplexityChange={handleComplexityChange}
           onDescriptionChange={setDescription}
           onDescriptionBlur={handleDescriptionBlur}
           onCommentsChange={setComments}
@@ -249,6 +260,7 @@ interface CardModalFieldsProps {
   titleError: string;
   status: CardStatus | null;
   priority: CardPriority | null;
+  complexity: number | null;
   description: string;
   comments: string;
   tasks: Task[];
@@ -261,6 +273,7 @@ interface CardModalFieldsProps {
   onTitleBlur: () => void;
   onStatusChange: (v: string) => void;
   onPriorityChange: (v: string) => void;
+  onComplexityChange: (v: string) => void;
   onDescriptionChange: (v: string) => void;
   onDescriptionBlur: () => void;
   onCommentsChange: (v: string) => void;
@@ -278,6 +291,7 @@ function CardModalFields({
   titleError,
   status,
   priority,
+  complexity,
   description,
   comments,
   tasks,
@@ -290,6 +304,7 @@ function CardModalFields({
   onTitleBlur,
   onStatusChange,
   onPriorityChange,
+  onComplexityChange,
   onDescriptionChange,
   onDescriptionBlur,
   onCommentsChange,
@@ -382,6 +397,23 @@ function CardModalFields({
               <option key={p} value={p}>
                 {p === '' ? 'Unset' : p}
               </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex-1">
+          <label htmlFor="card-complexity" className="block text-xs text-obsidian-muted mb-1">
+            Complexity
+          </label>
+          <select
+            id="card-complexity"
+            value={complexity ?? ''}
+            onChange={(e) => onComplexityChange(e.target.value)}
+            className={`${inputClass} disabled:opacity-60 disabled:cursor-default`}
+            disabled={readOnly}
+          >
+            <option value="">Unset</option>
+            {complexityOptions.map((c) => (
+              <option key={c} value={c}>{c}</option>
             ))}
           </select>
         </div>

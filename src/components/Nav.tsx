@@ -37,6 +37,7 @@ const sortLabels: Record<SortOption, string> = {
   alpha: 'Alphabetical',
   created: 'Created',
   modified: 'Modified',
+  complexity: 'Complexity',
 };
 
 export function Nav({
