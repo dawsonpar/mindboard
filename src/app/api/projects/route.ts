@@ -13,7 +13,7 @@ export async function GET() {
 
   const entries = fs.readdirSync(rootDir, { withFileTypes: true });
   const projects = entries
-    .filter((entry) => entry.isDirectory())
+    .filter((entry) => entry.isDirectory() && !entry.name.startsWith('.'))
     .map((entry) => entry.name);
 
   return NextResponse.json({ projects });
