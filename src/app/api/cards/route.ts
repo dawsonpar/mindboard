@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
   const cards: Card[] = [];
 
   for (const entry of entries) {
-    if (!entry.isFile() || !entry.name.endsWith('.md')) continue;
+    if (!entry.isFile() || !entry.name.endsWith('.md') || entry.name.startsWith('.')) continue;
 
     const absolutePath = path.join(targetDir, entry.name);
     const content = fs.readFileSync(absolutePath, 'utf-8');
