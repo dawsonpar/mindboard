@@ -85,6 +85,14 @@ export function KanbanCard({ card, index, onCardClick, onArchive, isJustDropped 
                   {card.priority}
                 </span>
               )}
+              {card.complexity != null && (
+                <span
+                  className="bg-obsidian-text text-obsidian-bg text-[10px] font-semibold px-1.5 py-0.5 rounded-full leading-none shrink-0"
+                  title={`Complexity: ${card.complexity} point${card.complexity === 1 ? '' : 's'}`}
+                >
+                  {card.complexity}
+                </span>
+              )}
               {totalTasks > 0 && (
                 <div className="flex items-center gap-1.5 flex-1 min-w-0">
                   <div className="flex-1 h-1 bg-obsidian-border rounded-full overflow-hidden">

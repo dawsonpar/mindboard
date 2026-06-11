@@ -1,1 +1,1 @@
-export type SortOption = 'priority' | 'alpha' | 'created' | 'modified';
+export type SortOption = 'priority' | 'alpha' | 'created' | 'modified' | 'complexity';

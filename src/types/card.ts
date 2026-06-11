@@ -13,6 +13,7 @@ export interface Card {
   title: string;
   status: CardStatus | null;
   priority: CardPriority | null;
+  complexity: number | null;
   description: string;
   tasks: Task[];
   references: string[];
