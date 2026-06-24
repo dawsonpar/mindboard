@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import type { SortOption } from '@/types/sort';
 import { Nav } from '@/components/Nav';
 import { KanbanBoard } from '@/components/KanbanBoard';
+import { Sidebar } from '@/components/Sidebar';
 import { CreateCardModal } from '@/components/CreateCardModal';
 import { CreateProjectModal } from '@/components/CreateProjectModal';
 import { Toast } from '@/components/Toast';
@@ -33,6 +34,7 @@ export default function Home() {
     project: string;
     filename: string;
   } | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const fetchProjects = useCallback(async () => {
     try {
@@ -78,6 +80,17 @@ export default function Home() {
     init();
   }, [router, fetchProjects]);
 
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.code === 'Comma') {
+        e.preventDefault();
+        setSidebarOpen((v) => !v);
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   async function handleProjectChange(project: string) {
     setSelectedProject(project);
     try {
@@ -118,7 +131,7 @@ export default function Home() {
     },
   ];
 
-  async function handleCreateProject(name: string) {
+  async function handleCreateProject(name: string): Promise<boolean> {
     try {
       const res = await fetch('/api/projects', {
         method: 'POST',
@@ -129,7 +142,7 @@ export default function Home() {
       if (!res.ok) {
         const err = await res.json();
         setToast({ message: err.error ?? 'Failed to create project', type: 'error' });
-        return;
+        return false;
       }
 
       const data = await res.json();
@@ -137,8 +150,10 @@ export default function Home() {
       await fetchProjects();
       setSelectedProject(data.name);
       setToast({ message: 'Project created', type: 'success' });
+      return true;
     } catch {
       setToast({ message: 'Failed to create project', type: 'error' });
+      return false;
     }
   }
 
@@ -187,34 +202,50 @@ export default function Home() {
   return (
     <div className="flex flex-col h-screen">
       <Nav
-        projects={projects}
         selectedProject={selectedProject}
-        onProjectChange={handleProjectChange}
-        onNewProject={() => setShowCreateProject(true)}
         onNewCard={() => setShowCreateCard(true)}
         sortBy={sortBy}
         onSortChange={setSortBy}
         onSelectCard={handleSelectCard}
         commands={commands}
+        sidebarOpen={sidebarOpen}
+        onToggleSidebar={() => setSidebarOpen((v) => !v)}
       />
 
-      {selectedProject ? (
-        <KanbanBoard
-          key={`${selectedProject}-${refreshKey}`}
-          project={selectedProject}
-          sortBy={sortBy}
-          openFilename={
-            pendingCard && pendingCard.project === selectedProject
-              ? pendingCard.filename
-              : null
-          }
-          onCardOpened={handleCardOpened}
-        />
-      ) : (
-        <div className="flex items-center justify-center flex-1 text-obsidian-muted text-sm">
-          Create a project to get started.
+      <div className="flex flex-1 min-h-0">
+        <div
+          className={`shrink-0 overflow-hidden transition-[width] duration-200 ease-out ${
+            sidebarOpen ? 'w-60' : 'w-0'
+          }`}
+        >
+          <Sidebar
+            projects={projects}
+            selectedProject={selectedProject}
+            onSelectProject={handleProjectChange}
+            onCreateProject={handleCreateProject}
+          />
         </div>
-      )}
+
+        <div className="flex flex-1 min-w-0 flex-col">
+          {selectedProject ? (
+            <KanbanBoard
+              key={`${selectedProject}-${refreshKey}`}
+              project={selectedProject}
+              sortBy={sortBy}
+              openFilename={
+                pendingCard && pendingCard.project === selectedProject
+                  ? pendingCard.filename
+                  : null
+              }
+              onCardOpened={handleCardOpened}
+            />
+          ) : (
+            <div className="flex flex-1 items-center justify-center text-obsidian-muted text-sm">
+              Create a project to get started.
+            </div>
+          )}
+        </div>
+      </div>
 
       {showCreateCard && selectedProject && (
         <CreateCardModal

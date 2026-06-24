@@ -5,15 +5,14 @@ import type { SortOption } from '@/types/sort';
 import { CommandBar, type CommandAction } from '@/components/CommandBar';
 
 interface NavProps {
-  projects: string[];
   selectedProject: string | null;
-  onProjectChange: (p: string) => void;
-  onNewProject: () => void;
   onNewCard: () => void;
   sortBy: SortOption;
   onSortChange: (s: SortOption) => void;
   onSelectCard: (project: string, filename: string) => void;
   commands: CommandAction[];
+  sidebarOpen: boolean;
+  onToggleSidebar: () => void;
 }
 
 function SettingsIcon() {
@@ -44,15 +43,14 @@ const sortLabels: Record<SortOption, string> = {
 };
 
 export function Nav({
-  projects,
   selectedProject,
-  onProjectChange,
-  onNewProject,
   onNewCard,
   sortBy,
   onSortChange,
   onSelectCard,
   commands,
+  sidebarOpen,
+  onToggleSidebar,
 }: NavProps) {
   return (
     <nav
@@ -62,23 +60,34 @@ export function Nav({
     >
       {/* Logo | command bar | controls. Stacks on mobile. */}
       <div className="flex flex-col sm:flex-row sm:h-14 sm:items-center py-2 sm:py-0 gap-2 sm:gap-4">
-        {/* Logo (mobile: logo + settings side by side) */}
-        <div className="flex items-center justify-between sm:justify-start shrink-0">
+        {/* Logo: the brain toggles the project sidebar */}
+        <div className="flex items-center justify-between sm:justify-start sm:flex-1">
           <span className="flex items-center gap-2 text-lg font-bold text-obsidian-text">
-            <span
-              aria-hidden="true"
-              className="inline-block w-[22px] h-[22px] bg-obsidian-accent shrink-0"
-              style={{
-                maskImage: 'url(/brain.png)',
-                maskSize: 'contain',
-                maskRepeat: 'no-repeat',
-                maskPosition: 'center',
-                WebkitMaskImage: 'url(/brain.png)',
-                WebkitMaskSize: 'contain',
-                WebkitMaskRepeat: 'no-repeat',
-                WebkitMaskPosition: 'center',
-              }}
-            />
+            <button
+              type="button"
+              onClick={onToggleSidebar}
+              aria-label={sidebarOpen ? 'Close project sidebar' : 'Open project sidebar'}
+              aria-expanded={sidebarOpen}
+              title="Toggle projects (⌘⇧,)"
+              className="inline-flex items-center justify-center rounded p-1 transition-colors hover:bg-[color-mix(in_srgb,var(--color-obsidian-text),transparent_92%)]"
+            >
+              <span
+                aria-hidden="true"
+                className={`inline-block w-[22px] h-[22px] shrink-0 transition-colors ${
+                  sidebarOpen ? 'bg-obsidian-muted' : 'bg-obsidian-accent'
+                }`}
+                style={{
+                  maskImage: 'url(/brain.png)',
+                  maskSize: 'contain',
+                  maskRepeat: 'no-repeat',
+                  maskPosition: 'center',
+                  WebkitMaskImage: 'url(/brain.png)',
+                  WebkitMaskSize: 'contain',
+                  WebkitMaskRepeat: 'no-repeat',
+                  WebkitMaskPosition: 'center',
+                }}
+              />
+            </button>
             MindBoard
           </span>
 
@@ -93,37 +102,12 @@ export function Nav({
         </div>
 
         {/* Command bar (centered) */}
-        <div className="flex sm:flex-1 sm:justify-center">
+        <div className="flex shrink-0 justify-center">
           <CommandBar onSelectCard={onSelectCard} commands={commands} />
         </div>
 
         {/* Controls */}
-        <div className="flex flex-wrap items-center gap-2 sm:justify-end shrink-0">
-          <label htmlFor="project-select" className="sr-only">
-            Select project
-          </label>
-          <select
-            id="project-select"
-            value={selectedProject ?? ''}
-            onChange={(e) => onProjectChange(e.target.value)}
-            className="bg-obsidian-bg border border-obsidian-border rounded-input text-obsidian-text px-2 py-1.5 text-sm focus:outline-none focus:border-obsidian-accent min-w-0"
-          >
-            {projects.length === 0 && (
-              <option value="">No projects</option>
-            )}
-            {projects.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
-
-          <button
-            onClick={onNewProject}
-            className="bg-obsidian-card border border-obsidian-border text-obsidian-text px-3 py-1.5 rounded-input text-sm hover:border-obsidian-accent transition-colors whitespace-nowrap"
-          >
-            New Project
-          </button>
+        <div className="flex flex-wrap items-center gap-2 sm:justify-end sm:flex-1">
           <button
             onClick={onNewCard}
             disabled={!selectedProject}
