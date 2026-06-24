@@ -12,6 +12,8 @@ import { useSSE } from "@/hooks/useSSE";
 interface KanbanBoardProps {
   project: string;
   sortBy: SortOption;
+  openFilename?: string | null;
+  onCardOpened?: () => void;
 }
 
 const COLUMN_ORDER: CardStatus[] = [
@@ -78,7 +80,12 @@ function groupByStatus(cards: Card[]): Record<string, Card[]> {
   return groups;
 }
 
-export function KanbanBoard({ project, sortBy }: KanbanBoardProps) {
+export function KanbanBoard({
+  project,
+  sortBy,
+  openFilename,
+  onCardOpened,
+}: KanbanBoardProps) {
   const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
@@ -157,6 +164,15 @@ export function KanbanBoard({ project, sortBy }: KanbanBoardProps) {
     setLoading(true);
     fetchCards();
   }, [fetchCards]);
+
+  // Open a specific card when requested from the command bar (after a
+  // possible project switch, once this project's cards have loaded).
+  useEffect(() => {
+    if (!openFilename || loading) return;
+    const card = cards.find((c) => c.filename === openFilename);
+    if (card) setSelectedCard(card);
+    onCardOpened?.();
+  }, [openFilename, loading, cards, onCardOpened]);
 
   useEffect(() => {
     if (showArchive) {

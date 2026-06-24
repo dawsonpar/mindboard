@@ -8,6 +8,7 @@ import { KanbanBoard } from '@/components/KanbanBoard';
 import { CreateCardModal } from '@/components/CreateCardModal';
 import { CreateProjectModal } from '@/components/CreateProjectModal';
 import { Toast } from '@/components/Toast';
+import type { CommandAction } from '@/components/CommandBar';
 
 interface AppConfig {
   rootDir: string;
@@ -28,6 +29,10 @@ export default function Home() {
   } | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [pendingCard, setPendingCard] = useState<{
+    project: string;
+    filename: string;
+  } | null>(null);
 
   const fetchProjects = useCallback(async () => {
     try {
@@ -85,6 +90,33 @@ export default function Home() {
       // Non-critical, ignore
     }
   }
+
+  function handleSelectCard(project: string, filename: string) {
+    if (project !== selectedProject) {
+      handleProjectChange(project);
+    }
+    setPendingCard({ project, filename });
+  }
+
+  const handleCardOpened = useCallback(() => {
+    setPendingCard(null);
+  }, []);
+
+  const commands: CommandAction[] = [
+    {
+      id: 'new-card',
+      title: 'New card',
+      run: () =>
+        selectedProject
+          ? setShowCreateCard(true)
+          : setToast({ message: 'Select a project first', type: 'info' }),
+    },
+    {
+      id: 'new-project',
+      title: 'New project',
+      run: () => setShowCreateProject(true),
+    },
+  ];
 
   async function handleCreateProject(name: string) {
     try {
@@ -162,6 +194,8 @@ export default function Home() {
         onNewCard={() => setShowCreateCard(true)}
         sortBy={sortBy}
         onSortChange={setSortBy}
+        onSelectCard={handleSelectCard}
+        commands={commands}
       />
 
       {selectedProject ? (
@@ -169,6 +203,12 @@ export default function Home() {
           key={`${selectedProject}-${refreshKey}`}
           project={selectedProject}
           sortBy={sortBy}
+          openFilename={
+            pendingCard && pendingCard.project === selectedProject
+              ? pendingCard.filename
+              : null
+          }
+          onCardOpened={handleCardOpened}
         />
       ) : (
         <div className="flex items-center justify-center flex-1 text-obsidian-muted text-sm">

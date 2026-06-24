@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import type { SortOption } from '@/types/sort';
+import { CommandBar, type CommandAction } from '@/components/CommandBar';
 
 interface NavProps {
   projects: string[];
@@ -11,6 +12,8 @@ interface NavProps {
   onNewCard: () => void;
   sortBy: SortOption;
   onSortChange: (s: SortOption) => void;
+  onSelectCard: (project: string, filename: string) => void;
+  commands: CommandAction[];
 }
 
 function SettingsIcon() {
@@ -48,6 +51,8 @@ export function Nav({
   onNewCard,
   sortBy,
   onSortChange,
+  onSelectCard,
+  commands,
 }: NavProps) {
   return (
     <nav
@@ -55,10 +60,10 @@ export function Nav({
       role="navigation"
       aria-label="Main navigation"
     >
-      {/* Single row on sm+, two rows on mobile */}
-      <div className="flex flex-col sm:flex-row sm:h-14 sm:items-center sm:justify-between py-2 sm:py-0 gap-2 sm:gap-0">
-        {/* Logo row (mobile: logo + settings side by side) */}
-        <div className="flex items-center justify-between sm:justify-start">
+      {/* Logo | command bar | controls. Stacks on mobile. */}
+      <div className="flex flex-col sm:flex-row sm:h-14 sm:items-center py-2 sm:py-0 gap-2 sm:gap-4">
+        {/* Logo (mobile: logo + settings side by side) */}
+        <div className="flex items-center justify-between sm:justify-start shrink-0">
           <span className="flex items-center gap-2 text-lg font-bold text-obsidian-text">
             <span
               aria-hidden="true"
@@ -77,7 +82,7 @@ export function Nav({
             MindBoard
           </span>
 
-          {/* Settings icon: visible inline on mobile, hidden on sm+ (shown at end of row below) */}
+          {/* Settings icon: visible inline on mobile, hidden on sm+ */}
           <Link
             href="/settings"
             className="text-obsidian-muted hover:text-obsidian-text p-1.5 transition-colors sm:hidden"
@@ -87,8 +92,13 @@ export function Nav({
           </Link>
         </div>
 
-        {/* Controls row */}
-        <div className="flex flex-wrap items-center gap-2">
+        {/* Command bar (centered) */}
+        <div className="flex sm:flex-1 sm:justify-center">
+          <CommandBar onSelectCard={onSelectCard} commands={commands} />
+        </div>
+
+        {/* Controls */}
+        <div className="flex flex-wrap items-center gap-2 sm:justify-end shrink-0">
           <label htmlFor="project-select" className="sr-only">
             Select project
           </label>
