@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
 import type { Card, CardStatus } from "@/types/card";
 import type { SortOption } from "@/types/sort";
@@ -12,8 +13,6 @@ import { useSSE } from "@/hooks/useSSE";
 interface KanbanBoardProps {
   project: string;
   sortBy: SortOption;
-  openFilename?: string | null;
-  onCardOpened?: () => void;
 }
 
 const COLUMN_ORDER: CardStatus[] = [
@@ -83,9 +82,8 @@ function groupByStatus(cards: Card[]): Record<string, Card[]> {
 export function KanbanBoard({
   project,
   sortBy,
-  openFilename,
-  onCardOpened,
 }: KanbanBoardProps) {
+  const router = useRouter();
   const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCard, setSelectedCard] = useState<Card | null>(null);
@@ -164,15 +162,6 @@ export function KanbanBoard({
     setLoading(true);
     fetchCards();
   }, [fetchCards]);
-
-  // Open a specific card when requested from the command bar (after a
-  // possible project switch, once this project's cards have loaded).
-  useEffect(() => {
-    if (!openFilename || loading) return;
-    const card = cards.find((c) => c.filename === openFilename);
-    if (card) setSelectedCard(card);
-    onCardOpened?.();
-  }, [openFilename, loading, cards, onCardOpened]);
 
   useEffect(() => {
     if (showArchive) {
@@ -384,7 +373,11 @@ export function KanbanBoard({
                 key={status}
                 status={status}
                 cards={grouped[status] ?? []}
-                onCardClick={setSelectedCard}
+                onCardClick={(card) =>
+                  router.push(
+                    `/card/${encodeURIComponent(project)}/${encodeURIComponent(card.filename)}`,
+                  )
+                }
                 onArchive={handleArchive}
                 droppedFilename={droppedFilename}
               />

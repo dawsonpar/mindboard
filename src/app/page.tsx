@@ -30,10 +30,6 @@ export default function Home() {
   } | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [pendingCard, setPendingCard] = useState<{
-    project: string;
-    filename: string;
-  } | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const fetchProjects = useCallback(async () => {
@@ -108,12 +104,10 @@ export default function Home() {
     if (project !== selectedProject) {
       handleProjectChange(project);
     }
-    setPendingCard({ project, filename });
+    router.push(
+      `/card/${encodeURIComponent(project)}/${encodeURIComponent(filename)}`,
+    );
   }
-
-  const handleCardOpened = useCallback(() => {
-    setPendingCard(null);
-  }, []);
 
   const commands: CommandAction[] = [
     {
@@ -232,12 +226,6 @@ export default function Home() {
               key={`${selectedProject}-${refreshKey}`}
               project={selectedProject}
               sortBy={sortBy}
-              openFilename={
-                pendingCard && pendingCard.project === selectedProject
-                  ? pendingCard.filename
-                  : null
-              }
-              onCardOpened={handleCardOpened}
             />
           ) : (
             <div className="flex flex-1 items-center justify-center text-obsidian-muted text-sm">
