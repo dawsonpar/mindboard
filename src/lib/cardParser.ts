@@ -1,4 +1,15 @@
-import type { Card, CardPriority, CardStatus, RawSection, Task } from '@/types/card';
+import type { Card, CardPriority, CardStatus, Task } from '@/types/card';
+
+/** A raw "## Heading" block. Internal to the parser only. */
+interface Section {
+  heading: string;
+  content: string;
+}
+
+/** Headings the schema maps to dedicated fields. Everything else folds into Description. */
+const KNOWN_HEADINGS = new Set([
+  'title', 'status', 'priority', 'complexity', 'description', 'tasks', 'references', 'comments',
+]);
 
 const VALID_STATUSES: CardStatus[] = ['TODO', 'IN PROGRESS', 'REVIEW', 'COMPLETED'];
 const VALID_PRIORITIES: CardPriority[] = ['P0', 'P1', 'P2', 'P3'];
@@ -9,8 +20,8 @@ interface FileStats {
   mtimeMs: number;
 }
 
-function splitIntoSections(content: string): RawSection[] {
-  const sections: RawSection[] = [];
+function splitIntoSections(content: string): Section[] {
+  const sections: Section[] = [];
   const lines = content.split('\n');
   let currentHeading: string | null = null;
   let currentLines: string[] = [];
@@ -40,7 +51,7 @@ function splitIntoSections(content: string): RawSection[] {
   return sections;
 }
 
-function findSection(sections: RawSection[], heading: string): string | undefined {
+function findSection(sections: Section[], heading: string): string | undefined {
   const section = sections.find(
     (s) => s.heading.toLowerCase() === heading.toLowerCase()
   );
@@ -126,9 +137,9 @@ export function parseCardContent(
   const errorMessages: string[] = [];
   let hasErrors = false;
 
-  const rawSections = splitIntoSections(content);
+  const sections = splitIntoSections(content);
 
-  const titleRaw = findSection(rawSections, 'Title');
+  const titleRaw = findSection(sections, 'Title');
   let title: string;
   if (titleRaw === undefined) {
     title = filenameWithoutExtension(filename);
@@ -145,7 +156,7 @@ export function parseCardContent(
     );
   }
 
-  const statusRaw = findSection(rawSections, 'Status');
+  const statusRaw = findSection(sections, 'Status');
   const status = parseStatus(statusRaw);
   if (statusRaw === undefined) {
     hasErrors = true;
@@ -157,14 +168,18 @@ export function parseCardContent(
     );
   }
 
-  const priorityRaw = findSection(rawSections, 'Priority');
+  const priorityRaw = findSection(sections, 'Priority');
   const priority = parsePriority(priorityRaw);
-  const complexity = parseComplexity(findSection(rawSections, 'Complexity'));
+  const complexity = parseComplexity(findSection(sections, 'Complexity'));
 
-  const description = findSection(rawSections, 'Description') ?? '';
-  const tasks = parseTasks(findSection(rawSections, 'Tasks'));
-  const references = parseReferences(findSection(rawSections, 'References'));
-  const comments = findSection(rawSections, 'Comments') ?? '';
+  const baseDescription = findSection(sections, 'Description') ?? '';
+  const customParts = sections
+    .filter((s) => !KNOWN_HEADINGS.has(s.heading.toLowerCase()))
+    .map((s) => (s.content ? `### ${s.heading}\n\n${s.content}` : `### ${s.heading}`));
+  const description = [baseDescription, ...customParts].filter(Boolean).join('\n\n');
+  const tasks = parseTasks(findSection(sections, 'Tasks'));
+  const references = parseReferences(findSection(sections, 'References'));
+  const comments = findSection(sections, 'Comments') ?? '';
 
   return {
     filename,
@@ -182,6 +197,5 @@ export function parseCardContent(
     modifiedAt: new Date(stats.mtimeMs).toISOString(),
     hasErrors,
     errorMessages,
-    rawSections,
   };
 }

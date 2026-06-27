@@ -22,10 +22,4 @@ export interface Card {
   modifiedAt: string;
   hasErrors: boolean;
   errorMessages: string[];
-  rawSections: RawSection[];
-}
-
-export interface RawSection {
-  heading: string;
-  content: string;
 }

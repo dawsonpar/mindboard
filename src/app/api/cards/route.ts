@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getConfig } from '@/lib/configManager';
 import { parseCardContent } from '@/lib/cardParser';
 import { cardToMarkdown } from '@/lib/cardWriter';
-import type { Card, CardPriority, CardStatus, RawSection } from '@/types/card';
+import type { Card, CardPriority, CardStatus } from '@/types/card';
 
 export async function GET(request: NextRequest) {
   const project = request.nextUrl.searchParams.get('project');
@@ -115,19 +115,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const rawSections: RawSection[] = [
-    { heading: 'Title', content: body.title.trim() },
-    { heading: 'Status', content: body.status ?? 'TODO' },
-    { heading: 'Priority', content: body.priority ?? '' },
-    {
-      heading: 'Complexity',
-      content: body.complexity != null ? String(body.complexity) : '',
-    },
-    { heading: 'Description', content: body.description ?? '' },
-    { heading: 'Tasks', content: '' },
-    { heading: 'Comments', content: '' },
-  ];
-
   const now = new Date().toISOString();
 
   const card: Card = {
@@ -146,7 +133,6 @@ export async function POST(request: NextRequest) {
     modifiedAt: now,
     hasErrors: false,
     errorMessages: [],
-    rawSections,
   };
 
   const markdown = cardToMarkdown(card);
