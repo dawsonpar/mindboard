@@ -42,3 +42,6 @@ next-env.d.ts
 
 # mindboard
 mindboard.config.json
+
+# design scratch with sample/personal card data (kept local, not public)
+docs/card-mockups/
