@@ -92,31 +92,28 @@ select {
 
 /* Status pill colors. Fixed semantic fills (like priority) so they stay
    legible across themes; IN PROGRESS uses the user's accent. White content. */
-.status-pill {
-  color: #fff;
-  font-size: 12px;
-  font-weight: 500;
-  padding: 3px 11px;
+.card-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 10px;
   border-radius: 999px;
-  line-height: 1.45;
-  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
   white-space: nowrap;
+  box-sizing: border-box;
 }
+.status-pill { color: #fff; }
 .status-todo { background: #64748b; }
 .status-inprogress { background: var(--color-obsidian-accent); }
 .status-review { background: color-mix(in srgb, #22c55e 80%, var(--color-obsidian-bg)); }
 .status-completed { background: #16a34a; }
 
 .chip-ghost {
-  font-size: 12px;
-  font-weight: 500;
   color: var(--color-obsidian-muted);
   background: none;
   border: 1px dashed var(--color-obsidian-border);
-  padding: 2px 9px;
-  border-radius: 999px;
-  display: inline-block;
-  white-space: nowrap;
 }
 
 /* layout */

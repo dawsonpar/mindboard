@@ -22,14 +22,14 @@ export function StatusChip({
   const meta = value ? STATUS.find((s) => s.value === value) : null;
   const items: ChipMenuItem[] = STATUS.map((s) => ({
     value: s.value,
-    node: <span className={`status-pill ${s.cls}`}>{s.label}</span>,
+    node: <span className={`card-chip status-pill ${s.cls}`}>{s.label}</span>,
   }));
   return (
     <ChipMenu ariaLabel="Set status" items={items} onSelect={(v) => onChange(v as CardStatus)}>
       {meta ? (
-        <span className={`status-pill ${meta.cls}`}>{meta.label}</span>
+        <span className={`card-chip status-pill ${meta.cls}`}>{meta.label}</span>
       ) : (
-        <span className="chip-ghost">Set status</span>
+        <span className="card-chip chip-ghost">Set status</span>
       )}
     </ChipMenu>
   );
@@ -48,7 +48,7 @@ const PRIORITY_BG: Record<CardPriority, string> = {
 function priorityPill(p: CardPriority) {
   return (
     <span
-      className={`${PRIORITY_BG[p]} text-obsidian-bg text-[11px] font-semibold px-2 py-[2px] rounded-full leading-snug`}
+      className={`card-chip ${PRIORITY_BG[p]} text-obsidian-bg`}
     >
       {p}
     </span>
@@ -64,7 +64,7 @@ export function PriorityChip({
 }) {
   const items: ChipMenuItem[] = [
     ...PRIORITIES.map((p) => ({ value: p, node: priorityPill(p) })),
-    { value: '__unset', node: <span className="chip-ghost">Unset</span> },
+    { value: '__unset', node: <span className="card-chip chip-ghost">Unset</span> },
   ];
   return (
     <ChipMenu
@@ -72,7 +72,7 @@ export function PriorityChip({
       items={items}
       onSelect={(v) => onChange(v === '__unset' ? null : (v as CardPriority))}
     >
-      {value ? priorityPill(value) : <span className="chip-ghost">+ priority</span>}
+      {value ? priorityPill(value) : <span className="card-chip chip-ghost">+ priority</span>}
     </ChipMenu>
   );
 }
@@ -83,7 +83,7 @@ const COMPLEXITY = [1, 2, 3, 4, 5, 6, 7, 8];
 
 function cxPill(n: number) {
   return (
-    <span className="bg-obsidian-text text-obsidian-bg text-[11px] font-semibold px-2 py-[2px] rounded-full leading-snug">
+    <span className="card-chip bg-obsidian-text text-obsidian-bg">
       {n}
     </span>
   );
@@ -97,7 +97,7 @@ export function ComplexityChip({
   onChange: (v: number | null) => void;
 }) {
   const items: ChipMenuItem[] = [
-    { value: '__unset', node: <span className="chip-ghost">Unset</span> },
+    { value: '__unset', node: <span className="card-chip chip-ghost">Unset</span> },
     ...COMPLEXITY.map((n) => ({ value: String(n), node: cxPill(n) })),
   ];
   return (
@@ -106,7 +106,7 @@ export function ComplexityChip({
       items={items}
       onSelect={(v) => onChange(v === '__unset' ? null : Number(v))}
     >
-      {value != null ? cxPill(value) : <span className="chip-ghost">+ cx</span>}
+      {value != null ? cxPill(value) : <span className="card-chip chip-ghost">+ cx</span>}
     </ChipMenu>
   );
 }
