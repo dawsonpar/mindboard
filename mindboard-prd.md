@@ -16,7 +16,7 @@ I visually want the mindboard to have the same visual design patterns as Obsidia
 
 Functionality wise I want the user to be able to configure the root directory that mindboard should point to.
 
-For me that will be /Users/dawsonpar/dp/notes/mindboard.
+For me that will be ~/notes/mindboard.
 
 Any subdirectory inside of the root directory will be treated as projects.
 

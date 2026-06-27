@@ -35,7 +35,7 @@ Create `start.sh` in the project root:
 
 ```json
 {
-  "rootDir": "/Users/dawsonpar/dp/notes/mindboard",
+  "rootDir": "~/notes/mindboard",
   "lastSelectedProject": null
 }
 ```

@@ -45,3 +45,20 @@ this reason.
 Sanity-check it against BOTH a light and a dark theme. You can override the
 `--color-obsidian-*` variables in the browser (or temporarily in
 `mindboard.config.json`) to preview a dark palette without committing it.
+
+## Privacy: this repository is PUBLIC
+
+Never commit content that should not be world-readable. Before every commit,
+scan the diff for these and stop if you find them:
+
+- Real card data or personal content. Use neutral, fictional sample data in
+  docs, examples, mockups, and tests (e.g. "Sample Project", not a real trip).
+- Secrets, tokens, or credentials.
+- Machine-local config. `mindboard.config.json`, `**/settings.local.json`, and
+  design scratch (`docs/card-mockups/`) are gitignored for this reason - keep
+  local-only artifacts untracked.
+- Absolute home paths (`/Users/<name>/...`); use `~/...` or a placeholder.
+
+Decision records in `docs/decisions/` stay abstract and technical (see that
+folder's README). If sensitive context is needed to explain a change, keep it
+in the private MindBoard card for the work, not in this repo.

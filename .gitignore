@@ -45,3 +45,6 @@ mindboard.config.json
 
 # design scratch with sample/personal card data (kept local, not public)
 docs/card-mockups/
+
+# machine-local config (never commit)
+**/settings.local.json
