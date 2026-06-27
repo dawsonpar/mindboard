@@ -10,7 +10,9 @@ interface SSEEvent {
 
 export function useSSE(onEvent: (event: SSEEvent) => void) {
   const onEventRef = useRef(onEvent);
-  onEventRef.current = onEvent;
+  useEffect(() => {
+    onEventRef.current = onEvent;
+  });
 
   useEffect(() => {
     let eventSource: EventSource | null = null;

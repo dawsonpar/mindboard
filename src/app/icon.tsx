@@ -25,6 +25,7 @@ export default function Icon() {
       >
         <img
           src={src}
+          alt=""
           width={32}
           height={32}
           style={{ filter: 'invert(1)' }}

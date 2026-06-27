@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
 import type { Card, CardStatus } from "@/types/card";
@@ -79,15 +79,10 @@ function groupByStatus(cards: Card[]): Record<string, Card[]> {
   return groups;
 }
 
-export function KanbanBoard({
-  project,
-  sortBy,
-}: KanbanBoardProps) {
+export function KanbanBoard({ project, sortBy }: KanbanBoardProps) {
   const router = useRouter();
   const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCard, setSelectedCard] = useState<Card | null>(null);
-  const [externalChange, setExternalChange] = useState(false);
   const [droppedFilename, setDroppedFilename] = useState<string | null>(null);
   const [showArchive, setShowArchive] = useState(false);
   const [archivedCards, setArchivedCards] = useState<Card[]>([]);
@@ -96,18 +91,6 @@ export function KanbanBoard({
     message: string;
     type: "info" | "error" | "success";
   } | null>(null);
-
-  const selectedCardRef = useRef<Card | null>(null);
-  selectedCardRef.current = selectedCard;
-
-  const recentAppWritesRef = useRef<Set<string>>(new Set());
-
-  function markAppWrite(filename: string) {
-    recentAppWritesRef.current.add(filename);
-    setTimeout(() => {
-      recentAppWritesRef.current.delete(filename);
-    }, 2000);
-  }
 
   const fetchCards = useCallback(async () => {
     try {
@@ -136,28 +119,6 @@ export function KanbanBoard({
     }
   }, [project]);
 
-  const fetchAndSyncSelected = useCallback(async () => {
-    try {
-      const res = await fetch(
-        `/api/cards?project=${encodeURIComponent(project)}`,
-      );
-      const data = await res.json();
-      const fetched: Card[] = data.cards ?? [];
-      setCards(fetched);
-
-      if (selectedCardRef.current) {
-        const updated = fetched.find(
-          (c) => c.filename === selectedCardRef.current?.filename,
-        );
-        if (updated) {
-          setSelectedCard(updated);
-        }
-      }
-    } catch {
-      setToast({ message: "Failed to load cards", type: "error" });
-    }
-  }, [project]);
-
   useEffect(() => {
     setLoading(true);
     fetchCards();
@@ -169,31 +130,14 @@ export function KanbanBoard({
     }
   }, [showArchive, fetchArchivedCards]);
 
+  // Refresh the board when any card in this project changes on disk.
   useSSE(
     useCallback(
       (event) => {
         if (event.project !== project) return;
-
-        if (recentAppWritesRef.current.has(event.filename)) {
-          fetchCards();
-          return;
-        }
-
-        if (
-          selectedCardRef.current &&
-          selectedCardRef.current.filename === event.filename
-        ) {
-          setExternalChange(true);
-          setToast({
-            message: "Card was modified externally",
-            type: "info",
-          });
-          fetchAndSyncSelected();
-        } else {
-          fetchCards();
-        }
+        fetchCards();
       },
-      [project, fetchCards, fetchAndSyncSelected],
+      [project, fetchCards],
     ),
   );
 
@@ -216,8 +160,6 @@ export function KanbanBoard({
       setTimeout(() => setDroppedFilename(null), 450);
     }, 5);
 
-    markAppWrite(draggableId);
-
     try {
       await fetch(
         `/api/cards/${encodeURIComponent(project)}/${encodeURIComponent(draggableId)}`,
@@ -233,36 +175,7 @@ export function KanbanBoard({
     }
   }
 
-  async function handleCardSave(updates: Partial<Card>) {
-    if (!selectedCard) return;
-
-    markAppWrite(selectedCard.filename);
-
-    try {
-      const res = await fetch(
-        `/api/cards/${encodeURIComponent(project)}/${encodeURIComponent(selectedCard.filename)}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updates),
-        },
-      );
-      const updatedCard: Card = await res.json();
-
-      setCards((prev) =>
-        prev.map((c) =>
-          c.filename === updatedCard.filename ? updatedCard : c,
-        ),
-      );
-      setSelectedCard(updatedCard);
-      setExternalChange(false);
-    } catch {
-      setToast({ message: "Failed to save card", type: "error" });
-    }
-  }
-
   async function handleArchive(filename: string) {
-    markAppWrite(filename);
     try {
       const res = await fetch(
         `/api/cards/${encodeURIComponent(project)}/${encodeURIComponent(filename)}/archive`,
@@ -282,7 +195,6 @@ export function KanbanBoard({
   }
 
   async function handleUnarchive(filename: string) {
-    markAppWrite(filename);
     try {
       const res = await fetch(
         `/api/cards/${encodeURIComponent(project)}/${encodeURIComponent(filename)}/archive`,
@@ -429,23 +341,6 @@ export function KanbanBoard({
             </div>
           )}
         </div>
-      )}
-
-      {selectedCard && (
-        <CardModal
-          card={selectedCard}
-          allCards={cards}
-          onClose={() => {
-            setSelectedCard(null);
-            setExternalChange(false);
-          }}
-          onSave={handleCardSave}
-          onNavigate={(target) => {
-            setSelectedCard(target);
-            setExternalChange(false);
-          }}
-          onExternalChange={externalChange}
-        />
       )}
 
       {selectedArchivedCard && (

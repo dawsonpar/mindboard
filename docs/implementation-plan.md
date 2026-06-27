@@ -181,7 +181,8 @@ Large centered modal showing:
 - Description (editable textarea)
 - Tasks list (interactive checkboxes, toggling updates the file)
 - Comments (editable textarea)
-- "Open in Obsidian" button - opens `obsidian://open?path=<absolute-path-to-file>`
+- (Historical) An "Open in Obsidian" button existed here; removed when cards
+  were decoupled from Obsidian into the dedicated /card route (2026-06).
 - Auto-saves on field blur (debounced 800ms), no explicit Save button
 
 ### CreateCardModal
