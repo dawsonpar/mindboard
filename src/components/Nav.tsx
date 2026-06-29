@@ -1,14 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { type SortOption, SORT_LABELS } from '@/types/sort';
 import { CommandBar, type CommandAction } from '@/components/CommandBar';
 
 interface NavProps {
-  selectedProject: string | null;
-  onNewCard: () => void;
-  sortBy: SortOption;
-  onSortChange: (s: SortOption) => void;
   onSelectCard: (project: string, filename: string) => void;
   commands: CommandAction[];
   sidebarOpen: boolean;
@@ -35,10 +30,6 @@ function SettingsIcon() {
 }
 
 export function Nav({
-  selectedProject,
-  onNewCard,
-  sortBy,
-  onSortChange,
   onSelectCard,
   commands,
   sidebarOpen,
@@ -100,30 +91,6 @@ export function Nav({
 
         {/* Controls */}
         <div className="flex flex-wrap items-center gap-2 sm:justify-end sm:flex-1">
-          <button
-            onClick={onNewCard}
-            disabled={!selectedProject}
-            className="bg-obsidian-accent text-obsidian-text px-3 py-1.5 rounded-input text-sm hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap"
-          >
-            New Card
-          </button>
-
-          <label htmlFor="sort-select" className="sr-only">
-            Sort cards by
-          </label>
-          <select
-            id="sort-select"
-            value={sortBy}
-            onChange={(e) => onSortChange(e.target.value as SortOption)}
-            className="bg-obsidian-bg border border-obsidian-border rounded-input text-obsidian-text px-2 py-1.5 text-sm focus:outline-none focus:border-obsidian-accent min-w-0"
-          >
-            {(Object.keys(SORT_LABELS) as SortOption[]).map((opt) => (
-              <option key={opt} value={opt}>
-                {SORT_LABELS[opt]}
-              </option>
-            ))}
-          </select>
-
           {/* Settings icon: hidden on mobile (shown above), visible on sm+ */}
           <Link
             href="/settings"

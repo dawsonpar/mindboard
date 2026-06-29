@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, forwardRef, useImperativeHandle } fro
 import { useRouter } from "next/navigation";
 import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
 import type { Card, CardStatus } from "@/types/card";
-import type { SortOption } from "@/types/sort";
+import { type SortOption, SORT_LABELS } from "@/types/sort";
 import { KanbanColumn } from "./KanbanColumn";
 import { CardModal } from "./CardModal";
 import { Toast } from "./Toast";
@@ -13,6 +13,8 @@ import { useSSE } from "@/hooks/useSSE";
 interface KanbanBoardProps {
   project: string;
   sortBy: SortOption;
+  onSortChange: (s: SortOption) => void;
+  onNewCard: () => void;
 }
 
 export interface KanbanBoardHandle {
@@ -85,7 +87,7 @@ function groupByStatus(cards: Card[]): Record<string, Card[]> {
 }
 
 export const KanbanBoard = forwardRef<KanbanBoardHandle, KanbanBoardProps>(
-  function KanbanBoard({ project, sortBy }, ref) {
+  function KanbanBoard({ project, sortBy, onSortChange, onNewCard }, ref) {
   const router = useRouter();
   const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
@@ -269,23 +271,48 @@ export const KanbanBoard = forwardRef<KanbanBoardHandle, KanbanBoardProps>(
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
-      <div className="flex items-center gap-2 px-4 py-2 border-b border-obsidian-border shrink-0">
-        <button
-          onClick={handleBulkArchive}
-          className="text-xs text-obsidian-muted hover:text-obsidian-text border border-obsidian-border hover:border-obsidian-accent rounded px-2.5 py-1 transition-colors"
-        >
-          Archive completed
-        </button>
-        <button
-          onClick={() => setShowArchive((v) => !v)}
-          className={`text-xs rounded px-2.5 py-1 border transition-colors ${
-            showArchive
-              ? "border-obsidian-accent text-obsidian-accent"
-              : "border-obsidian-border text-obsidian-muted hover:text-obsidian-text hover:border-obsidian-accent"
-          }`}
-        >
-          {showArchive ? "Hide archive" : "Show archive"}
-        </button>
+      <div className="flex items-center justify-between gap-2 px-4 py-2 border-b border-obsidian-border shrink-0">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleBulkArchive}
+            className="text-xs text-obsidian-muted hover:text-obsidian-text border border-obsidian-border hover:border-obsidian-accent rounded px-2.5 py-1 transition-colors"
+          >
+            Archive completed
+          </button>
+          <button
+            onClick={() => setShowArchive((v) => !v)}
+            className={`text-xs rounded px-2.5 py-1 border transition-colors ${
+              showArchive
+                ? "border-obsidian-accent text-obsidian-accent"
+                : "border-obsidian-border text-obsidian-muted hover:text-obsidian-text hover:border-obsidian-accent"
+            }`}
+          >
+            {showArchive ? "Hide archive" : "Show archive"}
+          </button>
+        </div>
+        <div className="flex items-center gap-2">
+          <label htmlFor="sort-select" className="sr-only">
+            Sort cards by
+          </label>
+          <select
+            id="sort-select"
+            value={sortBy}
+            onChange={(e) => onSortChange(e.target.value as SortOption)}
+            className="bg-obsidian-bg border border-obsidian-border rounded-input text-obsidian-text px-2 py-1.5 text-sm focus:outline-none focus:border-obsidian-accent min-w-0"
+          >
+            {(Object.keys(SORT_LABELS) as SortOption[]).map((opt) => (
+              <option key={opt} value={opt}>
+                {SORT_LABELS[opt]}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={onNewCard}
+            className="bg-obsidian-accent text-obsidian-text px-3 py-1.5 rounded-input text-sm hover:opacity-90 transition-opacity whitespace-nowrap"
+          >
+            New Card
+          </button>
+        </div>
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>

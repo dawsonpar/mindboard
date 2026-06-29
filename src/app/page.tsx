@@ -240,10 +240,6 @@ export default function Home() {
   return (
     <div className="flex flex-col h-screen">
       <Nav
-        selectedProject={selectedProject}
-        onNewCard={() => setShowCreateCard(true)}
-        sortBy={sortBy}
-        onSortChange={setSortBy}
         onSelectCard={handleSelectCard}
         commands={commands}
         sidebarOpen={sidebarOpen}
@@ -271,6 +267,8 @@ export default function Home() {
               key={`${selectedProject}-${refreshKey}`}
               project={selectedProject}
               sortBy={sortBy}
+              onSortChange={setSortBy}
+              onNewCard={() => setShowCreateCard(true)}
             />
           ) : (
             <div className="flex flex-1 items-center justify-center text-obsidian-muted text-sm">
