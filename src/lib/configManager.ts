@@ -29,6 +29,7 @@ export function saveConfig(partial: Partial<MindBoardConfig>): MindBoardConfig {
         ? partial.lastSelectedProject
         : (existing?.lastSelectedProject ?? null),
     theme: partial.theme ?? existing?.theme,
+    keybindings: partial.keybindings ?? existing?.keybindings,
   };
 
   const configPath = getConfigPath();

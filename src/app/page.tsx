@@ -9,11 +9,13 @@ import { Sidebar } from '@/components/Sidebar';
 import { CreateCardModal } from '@/components/CreateCardModal';
 import { CreateProjectModal } from '@/components/CreateProjectModal';
 import { Toast } from '@/components/Toast';
-import type { CommandAction } from '@/components/CommandBar';
+import { type CommandAction, type CommandBarHandle } from '@/components/CommandBar';
+import { resolveBindings, matchEvent } from '@/lib/shortcuts';
 
 interface AppConfig {
   rootDir: string;
   lastSelectedProject: string | null;
+  keybindings?: Record<string, string>;
 }
 
 export default function Home() {
@@ -33,6 +35,10 @@ export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showActions, setShowActions] = useState(true);
   const boardRef = useRef<KanbanBoardHandle>(null);
+  const commandBarRef = useRef<CommandBarHandle>(null);
+  const [bindings, setBindings] = useState<Record<string, string>>(() =>
+    resolveBindings(),
+  );
 
   const fetchProjects = useCallback(async () => {
     try {
@@ -52,6 +58,7 @@ export default function Home() {
         const configRes = await fetch('/api/config');
         const configData: AppConfig = await configRes.json();
         setConfig(configData);
+        setBindings(resolveBindings(configData.keybindings));
 
         if (!configData.rootDir) {
           router.push('/settings');
@@ -78,19 +85,27 @@ export default function Home() {
     init();
   }, [router, fetchProjects]);
 
+  // Single global dispatcher: matches each keydown against the effective
+  // bindings and runs the action. Open-palette/search drive the bar via ref.
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.code === 'Comma') {
+      if (matchEvent(e, bindings['command-palette'])) {
+        e.preventDefault();
+        commandBarRef.current?.focusCommands();
+      } else if (matchEvent(e, bindings['search'])) {
+        e.preventDefault();
+        commandBarRef.current?.focusSearch();
+      } else if (matchEvent(e, bindings['toggle-sidebar'])) {
         e.preventDefault();
         setSidebarOpen((v) => !v);
-      } else if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.code === 'Period') {
+      } else if (matchEvent(e, bindings['toggle-actions'])) {
         e.preventDefault();
         setShowActions((v) => !v);
       }
     }
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [bindings]);
 
   const handleProjectChange = useCallback(async (project: string) => {
     setSelectedProject(project);
@@ -152,14 +167,14 @@ export default function Home() {
         id: 'toggle-sidebar',
         title: 'Toggle project sidebar',
         keywords: ['sidebar', 'projects', 'panel'],
-        shortcut: '⌘⇧,',
+        shortcut: bindings['toggle-sidebar'],
         run: () => setSidebarOpen((v) => !v),
       },
       {
         id: 'toggle-actions',
         title: 'Toggle actions and filters',
         keywords: ['toolbar', 'actions', 'filters', 'archive', 'sort', 'new card', 'hide', 'show'],
-        shortcut: '⌘⇧.',
+        shortcut: bindings['toggle-actions'],
         run: () => setShowActions((v) => !v),
       },
     ];
@@ -178,7 +193,7 @@ export default function Home() {
       run: () => handleProjectChange(p),
     }));
     return [...base, ...sortCmds, ...projectCmds];
-  }, [projects, selectedProject, handleProjectChange]);
+  }, [projects, selectedProject, handleProjectChange, bindings]);
 
   async function handleCreateProject(name: string): Promise<boolean> {
     try {
@@ -253,6 +268,8 @@ export default function Home() {
       <Nav
         onSelectCard={handleSelectCard}
         commands={commands}
+        commandBarRef={commandBarRef}
+        searchCombo={bindings['search']}
         sidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen((v) => !v)}
       />

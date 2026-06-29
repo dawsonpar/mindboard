@@ -1,11 +1,14 @@
 'use client';
 
+import type { Ref } from 'react';
 import Link from 'next/link';
-import { CommandBar, type CommandAction } from '@/components/CommandBar';
+import { CommandBar, type CommandAction, type CommandBarHandle } from '@/components/CommandBar';
 
 interface NavProps {
   onSelectCard: (project: string, filename: string) => void;
   commands: CommandAction[];
+  commandBarRef: Ref<CommandBarHandle>;
+  searchCombo: string;
   sidebarOpen: boolean;
   onToggleSidebar: () => void;
 }
@@ -32,6 +35,8 @@ function SettingsIcon() {
 export function Nav({
   onSelectCard,
   commands,
+  commandBarRef,
+  searchCombo,
   sidebarOpen,
   onToggleSidebar,
 }: NavProps) {
@@ -86,7 +91,12 @@ export function Nav({
 
         {/* Command bar (centered) */}
         <div className="flex shrink-0 justify-center">
-          <CommandBar onSelectCard={onSelectCard} commands={commands} />
+          <CommandBar
+            ref={commandBarRef}
+            onSelectCard={onSelectCard}
+            commands={commands}
+            searchCombo={searchCombo}
+          />
         </div>
 
         {/* Controls */}

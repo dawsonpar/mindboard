@@ -22,4 +22,5 @@ export interface MindBoardConfig {
   rootDir: string;
   lastSelectedProject: string | null;
   theme?: ThemeColors;
+  keybindings?: Record<string, string>;
 }
