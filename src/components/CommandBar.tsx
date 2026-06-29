@@ -14,6 +14,10 @@ export interface SearchResult {
 export interface CommandAction {
   id: string;
   title: string;
+  /** Extra terms the fuzzy matcher searches in ">" command mode. */
+  keywords?: string[];
+  /** Mac-style display hint (e.g. "⌘⇧,"); shown right-aligned, transliterated off Mac. */
+  shortcut?: string;
   run: () => void;
 }
 
@@ -36,9 +40,9 @@ const priorityColor: Record<string, string> = {
   P3: 'text-priority-p3',
 };
 
-// Lower score = better match. Returns null when the title does not match.
-function scoreTitle(title: string, query: string): number | null {
-  const t = title.toLowerCase();
+// Lower score = better match. Returns null when the text does not match.
+function scoreText(text: string, query: string): number | null {
+  const t = text.toLowerCase();
   const q = query.toLowerCase();
   const idx = t.indexOf(q);
   if (idx === 0) return 0; // prefix
@@ -53,6 +57,25 @@ function scoreTitle(title: string, query: string): number | null {
   return qi === q.length ? 3 : null; // subsequence fallback
 }
 
+// Best score across a command's title + keywords.
+function scoreCommand(cmd: CommandAction, query: string): number | null {
+  let best: number | null = null;
+  for (const text of [cmd.title, ...(cmd.keywords ?? [])]) {
+    const s = scoreText(text, query);
+    if (s !== null && (best === null || s < best)) best = s;
+  }
+  return best;
+}
+
+// Transliterate a Mac-style hint for non-Mac platforms.
+function fmtShortcut(s: string, isMac: boolean): string {
+  if (isMac) return s;
+  return s
+    .replace('⌘', 'Ctrl+')
+    .replace('⇧', 'Shift+')
+    .replace('⌥', 'Alt+');
+}
+
 function Empty({ text }: { text: string }) {
   return <p className="px-3 py-4 text-xs text-obsidian-muted">{text}</p>;
 }
@@ -60,12 +83,14 @@ function Empty({ text }: { text: string }) {
 // VSCode-style command center in the nav. The card index is preloaded once on
 // mount (and refreshed on focus), so search filters locally and feels instant.
 // Typing searches card titles across all projects; a leading ">" lists commands.
+// Open it with Cmd/Ctrl+K (search) or Cmd/Ctrl+Shift+P (commands).
 export function CommandBar({ onSelectCard, commands }: CommandBarProps) {
   const [value, setValue] = useState('');
   const [focused, setFocused] = useState(false);
   const [index, setIndex] = useState<SearchResult[]>([]);
   const [indexLoaded, setIndexLoaded] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isMac, setIsMac] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -73,6 +98,10 @@ export function CommandBar({ onSelectCard, commands }: CommandBarProps) {
   const isCommandMode = value.startsWith('>');
   const commandQuery = isCommandMode ? value.slice(1).trim().toLowerCase() : '';
   const trimmed = value.trim();
+
+  useEffect(() => {
+    setIsMac(/Mac|iPhone|iPad/i.test(navigator.userAgent));
+  }, []);
 
   // Preload the searchable card index; refreshed on focus to stay current.
   const loadIndex = useCallback(async () => {
@@ -91,20 +120,25 @@ export function CommandBar({ onSelectCard, commands }: CommandBarProps) {
     loadIndex();
   }, [loadIndex]);
 
-  const filteredCommands = useMemo(
-    () =>
-      isCommandMode
-        ? commands.filter((c) => c.title.toLowerCase().includes(commandQuery))
-        : [],
-    [isCommandMode, commands, commandQuery],
-  );
+  const filteredCommands = useMemo(() => {
+    if (!isCommandMode) return [];
+    if (commandQuery === '') return commands;
+    const scored: { cmd: CommandAction; score: number }[] = [];
+    for (const cmd of commands) {
+      const score = scoreCommand(cmd, commandQuery);
+      if (score === null) continue;
+      scored.push({ cmd, score });
+    }
+    scored.sort((a, b) => a.score - b.score || a.cmd.title.length - b.cmd.title.length);
+    return scored.map((s) => s.cmd);
+  }, [isCommandMode, commands, commandQuery]);
 
   // Local fuzzy search over the preloaded index (no network per keystroke).
   const results = useMemo(() => {
     if (isCommandMode || trimmed.length < MIN_QUERY) return [];
     const scored: { card: SearchResult; score: number }[] = [];
     for (const card of index) {
-      const score = scoreTitle(card.title, trimmed);
+      const score = scoreText(card.title, trimmed);
       if (score === null) continue;
       scored.push({ card, score });
     }
@@ -115,11 +149,17 @@ export function CommandBar({ onSelectCard, commands }: CommandBarProps) {
   const open = focused && (isCommandMode || trimmed.length >= MIN_QUERY);
   const listLength = isCommandMode ? filteredCommands.length : results.length;
 
-  // Global shortcut: jump focus to the bar.
+  // Global shortcuts: Cmd/Ctrl+Shift+P opens command mode; Cmd/Ctrl+K opens search.
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.code === 'KeyP') {
+      const mod = e.metaKey || e.ctrlKey;
+      if (mod && e.shiftKey && e.code === 'KeyP') {
         e.preventDefault();
+        setValue('>');
+        inputRef.current?.focus();
+      } else if (mod && !e.shiftKey && !e.altKey && e.code === 'KeyK') {
+        e.preventDefault();
+        setValue('');
         inputRef.current?.focus();
       }
     }
@@ -186,7 +226,7 @@ export function CommandBar({ onSelectCard, commands }: CommandBarProps) {
         }}
         onBlur={() => setFocused(false)}
         onKeyDown={handleKeyDown}
-        placeholder="Search cards by name"
+        placeholder="Search cards, or type > for commands"
         aria-label="Search cards or run a command"
         className={`w-full ${BAR_BG} border border-obsidian-border px-3 py-1.5 text-sm text-obsidian-text placeholder:text-obsidian-muted focus:outline-none ${
           open
@@ -201,6 +241,9 @@ export function CommandBar({ onSelectCard, commands }: CommandBarProps) {
         >
           <span aria-hidden="true" className="text-[1.45rem] leading-none">⌕</span>
           <span>Search</span>
+          <span className="absolute right-3 rounded border border-obsidian-border px-1.5 py-0.5 text-[10px] leading-none text-obsidian-muted">
+            {fmtShortcut('⌘K', isMac)}
+          </span>
         </div>
       )}
 
@@ -229,7 +272,12 @@ export function CommandBar({ onSelectCard, commands }: CommandBarProps) {
                       : 'text-obsidian-muted'
                   }`}
                 >
-                  {cmd.title}
+                  <span className="min-w-0 flex-1 truncate">{cmd.title}</span>
+                  {cmd.shortcut && (
+                    <span className="shrink-0 rounded border border-obsidian-border px-1.5 py-0.5 text-[10px] leading-none text-obsidian-muted">
+                      {fmtShortcut(cmd.shortcut, isMac)}
+                    </span>
+                  )}
                 </button>
               ))
             )

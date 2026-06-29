@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, forwardRef, useImperativeHandle } from "react";
 import { useRouter } from "next/navigation";
 import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
 import type { Card, CardStatus } from "@/types/card";
@@ -13,6 +13,11 @@ import { useSSE } from "@/hooks/useSSE";
 interface KanbanBoardProps {
   project: string;
   sortBy: SortOption;
+}
+
+export interface KanbanBoardHandle {
+  archiveCompleted: () => void;
+  toggleArchive: () => void;
 }
 
 const COLUMN_ORDER: CardStatus[] = [
@@ -79,7 +84,8 @@ function groupByStatus(cards: Card[]): Record<string, Card[]> {
   return groups;
 }
 
-export function KanbanBoard({ project, sortBy }: KanbanBoardProps) {
+export const KanbanBoard = forwardRef<KanbanBoardHandle, KanbanBoardProps>(
+  function KanbanBoard({ project, sortBy }, ref) {
   const router = useRouter();
   const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,6 +97,11 @@ export function KanbanBoard({ project, sortBy }: KanbanBoardProps) {
     message: string;
     type: "info" | "error" | "success";
   } | null>(null);
+
+  useImperativeHandle(ref, () => ({
+    archiveCompleted: () => handleBulkArchive(),
+    toggleArchive: () => setShowArchive((v) => !v),
+  }));
 
   const fetchCards = useCallback(async () => {
     try {
@@ -367,4 +378,6 @@ export function KanbanBoard({ project, sortBy }: KanbanBoardProps) {
       )}
     </div>
   );
-}
+});
+
+KanbanBoard.displayName = 'KanbanBoard';

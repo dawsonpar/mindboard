@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import type { SortOption } from '@/types/sort';
+import { type SortOption, SORT_LABELS } from '@/types/sort';
 import { CommandBar, type CommandAction } from '@/components/CommandBar';
 
 interface NavProps {
@@ -33,14 +33,6 @@ function SettingsIcon() {
     </svg>
   );
 }
-
-const sortLabels: Record<SortOption, string> = {
-  priority: 'Priority',
-  alpha: 'Alphabetical',
-  created: 'Created',
-  modified: 'Modified',
-  complexity: 'Complexity',
-};
 
 export function Nav({
   selectedProject,
@@ -125,9 +117,9 @@ export function Nav({
             onChange={(e) => onSortChange(e.target.value as SortOption)}
             className="bg-obsidian-bg border border-obsidian-border rounded-input text-obsidian-text px-2 py-1.5 text-sm focus:outline-none focus:border-obsidian-accent min-w-0"
           >
-            {(Object.keys(sortLabels) as SortOption[]).map((opt) => (
+            {(Object.keys(SORT_LABELS) as SortOption[]).map((opt) => (
               <option key={opt} value={opt}>
-                {sortLabels[opt]}
+                {SORT_LABELS[opt]}
               </option>
             ))}
           </select>
