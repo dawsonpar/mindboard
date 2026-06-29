@@ -83,6 +83,9 @@ export default function Home() {
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.code === 'Comma') {
         e.preventDefault();
         setSidebarOpen((v) => !v);
+      } else if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.code === 'Period') {
+        e.preventDefault();
+        setShowActions((v) => !v);
       }
     }
     window.addEventListener('keydown', handleKeyDown);
@@ -156,6 +159,7 @@ export default function Home() {
         id: 'toggle-actions',
         title: 'Toggle actions and filters',
         keywords: ['toolbar', 'actions', 'filters', 'archive', 'sort', 'new card', 'hide', 'show'],
+        shortcut: '⌘⇧.',
         run: () => setShowActions((v) => !v),
       },
     ];
