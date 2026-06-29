@@ -198,14 +198,23 @@ export function CommandBar({ onSelectCard, commands }: CommandBarProps) {
   }, [isCommandMode, filteredCommands, results, activeIndex, onSelectCard, close]);
 
   function handleKeyDown(e: React.KeyboardEvent) {
+    // Down: ArrowDown or Vim-style Ctrl+J. Up: ArrowUp or Ctrl+K.
+    const navDown = e.key === 'ArrowDown' || (e.ctrlKey && e.key === 'j');
+    const navUp = e.key === 'ArrowUp' || (e.ctrlKey && e.key === 'k');
+
     if (e.key === 'Escape') {
       e.preventDefault();
       close();
-    } else if (e.key === 'ArrowDown') {
+    } else if (navDown) {
+      if (!open) return;
       e.preventDefault();
+      if (e.ctrlKey) e.stopPropagation(); // don't let Ctrl+J reach the browser
       setActiveIndex((i) => (listLength === 0 ? 0 : Math.min(i + 1, listLength - 1)));
-    } else if (e.key === 'ArrowUp') {
+    } else if (navUp) {
+      // Ctrl+K also opens the bar globally; only steal it while navigating.
+      if (!open) return;
       e.preventDefault();
+      if (e.ctrlKey) e.stopPropagation();
       setActiveIndex((i) => Math.max(i - 1, 0));
     } else if (e.key === 'Enter') {
       e.preventDefault();
@@ -268,7 +277,7 @@ export function CommandBar({ onSelectCard, commands }: CommandBarProps) {
                   }}
                   className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm ${
                     i === activeIndex
-                      ? 'bg-obsidian-card text-obsidian-text'
+                      ? 'bg-[color-mix(in_srgb,var(--color-obsidian-accent),transparent_82%)] text-obsidian-text shadow-[inset_2px_0_0_0_var(--color-obsidian-accent)]'
                       : 'text-obsidian-muted'
                   }`}
                 >
@@ -295,7 +304,9 @@ export function CommandBar({ onSelectCard, commands }: CommandBarProps) {
                   onSelectCard(r.project, r.filename);
                 }}
                 className={`flex w-full items-center gap-2 px-3 py-2 text-left ${
-                  i === activeIndex ? 'bg-obsidian-card' : ''
+                  i === activeIndex
+                    ? 'bg-[color-mix(in_srgb,var(--color-obsidian-accent),transparent_82%)] shadow-[inset_2px_0_0_0_var(--color-obsidian-accent)]'
+                    : ''
                 }`}
               >
                 <span className="min-w-0 flex-1">
