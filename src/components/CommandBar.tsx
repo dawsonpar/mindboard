@@ -233,7 +233,10 @@ export function CommandBar({ onSelectCard, commands }: CommandBarProps) {
           setFocused(true);
           loadIndex();
         }}
-        onBlur={() => setFocused(false)}
+        onBlur={() => {
+          setFocused(false);
+          setValue('');
+        }}
         onKeyDown={handleKeyDown}
         placeholder="Search cards, or type > for commands"
         aria-label="Search cards or run a command"
