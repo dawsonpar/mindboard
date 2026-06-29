@@ -15,6 +15,7 @@ interface KanbanBoardProps {
   sortBy: SortOption;
   onSortChange: (s: SortOption) => void;
   onNewCard: () => void;
+  showActions: boolean;
 }
 
 export interface KanbanBoardHandle {
@@ -87,7 +88,7 @@ function groupByStatus(cards: Card[]): Record<string, Card[]> {
 }
 
 export const KanbanBoard = forwardRef<KanbanBoardHandle, KanbanBoardProps>(
-  function KanbanBoard({ project, sortBy, onSortChange, onNewCard }, ref) {
+  function KanbanBoard({ project, sortBy, onSortChange, onNewCard, showActions }, ref) {
   const router = useRouter();
   const [cards, setCards] = useState<Card[]>([]);
   const [loading, setLoading] = useState(true);
@@ -271,7 +272,12 @@ export const KanbanBoard = forwardRef<KanbanBoardHandle, KanbanBoardProps>(
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
-      <div className="flex items-center justify-between gap-2 px-4 py-2 border-b border-obsidian-border shrink-0">
+      <div
+        className={`shrink-0 overflow-hidden transition-all duration-200 ease-out ${
+          showActions ? "max-h-20 opacity-100" : "max-h-0 opacity-0"
+        }`}
+      >
+        <div className="flex items-center justify-between gap-2 px-4 py-2 border-b border-obsidian-border">
         <div className="flex items-center gap-2">
           <button
             onClick={handleBulkArchive}
@@ -313,6 +319,7 @@ export const KanbanBoard = forwardRef<KanbanBoardHandle, KanbanBoardProps>(
             New Card
           </button>
         </div>
+      </div>
       </div>
 
       <DragDropContext onDragEnd={handleDragEnd}>

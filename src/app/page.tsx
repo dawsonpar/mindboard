@@ -31,6 +31,7 @@ export default function Home() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [showActions, setShowActions] = useState(true);
   const boardRef = useRef<KanbanBoardHandle>(null);
 
   const fetchProjects = useCallback(async () => {
@@ -151,6 +152,12 @@ export default function Home() {
         shortcut: '⌘⇧,',
         run: () => setSidebarOpen((v) => !v),
       },
+      {
+        id: 'toggle-actions',
+        title: 'Toggle actions and filters',
+        keywords: ['toolbar', 'actions', 'filters', 'archive', 'sort', 'new card', 'hide', 'show'],
+        run: () => setShowActions((v) => !v),
+      },
     ];
     const sortCmds: CommandAction[] = (Object.keys(SORT_LABELS) as SortOption[]).map(
       (opt) => ({
@@ -269,6 +276,7 @@ export default function Home() {
               sortBy={sortBy}
               onSortChange={setSortBy}
               onNewCard={() => setShowCreateCard(true)}
+              showActions={showActions}
             />
           ) : (
             <div className="flex flex-1 items-center justify-center text-obsidian-muted text-sm">
