@@ -14,6 +14,8 @@ export interface Card {
   status: CardStatus | null;
   priority: CardPriority | null;
   complexity: number | null;
+  /** Canonical schedule string, see src/lib/schedule.ts. */
+  schedule: string | null;
   description: string;
   tasks: Task[];
   references: string[];

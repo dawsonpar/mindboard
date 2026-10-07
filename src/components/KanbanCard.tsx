@@ -2,6 +2,7 @@
 
 import { Draggable } from '@hello-pangea/dnd';
 import type { Card } from '@/types/card';
+import { scheduleLabel } from './card/ScheduleChip';
 
 interface KanbanCardProps {
   card: Card;
@@ -91,6 +92,11 @@ export function KanbanCard({ card, index, onCardClick, onArchive, isJustDropped 
                   title={`Complexity: ${card.complexity} point${card.complexity === 1 ? '' : 's'}`}
                 >
                   {card.complexity}
+                </span>
+              )}
+              {card.schedule && (
+                <span className="text-[10px] text-obsidian-muted shrink-0" title={`Scheduled: ${card.schedule}`}>
+                  {scheduleLabel(card.schedule, true)}
                 </span>
               )}
               {totalTasks > 0 && (

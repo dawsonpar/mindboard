@@ -6,6 +6,7 @@ import { Outline } from './Outline';
 import { EditableTitle } from './EditableTitle';
 import { EditableMarkdown } from './EditableMarkdown';
 import { StatusChip, PriorityChip, ComplexityChip } from './Chips';
+import { ScheduleChip } from './ScheduleChip';
 import { CollapsibleSection } from './CollapsibleSection';
 import { TaskSection } from './TaskSection';
 import { ReferenceSection } from './ReferenceSection';
@@ -48,6 +49,7 @@ export function CardArticle({ card, allCards, onSave }: CardArticleProps) {
           <StatusChip value={card.status} onChange={(v: CardStatus) => onSave({ status: v })} />
           <PriorityChip value={card.priority} onChange={(v: CardPriority | null) => onSave({ priority: v })} />
           <ComplexityChip value={card.complexity} onChange={(v) => onSave({ complexity: v })} />
+          <ScheduleChip value={card.schedule} onChange={(v) => onSave({ schedule: v })} />
         </div>
 
         <EditableTitle value={card.title} onCommit={(v) => onSave({ title: v })} />

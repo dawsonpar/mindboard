@@ -110,6 +110,11 @@ select {
 .status-review { background: color-mix(in srgb, #22c55e 80%, var(--color-obsidian-bg)); }
 .status-completed { background: #16a34a; }
 
+.chip-date {
+  color: var(--color-obsidian-text);
+  border: 1px solid var(--color-obsidian-border);
+}
+
 .chip-ghost {
   color: var(--color-obsidian-muted);
   background: none;
