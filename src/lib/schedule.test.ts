@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseSchedule, toEventTimes, fromEventTimes, eventIdFor, effectiveSchedule } from './schedule.ts';
 
-const TZ = 'America/New_York';
+const TZ = 'Europe/Paris';
 
 test('parses an all-day date', () => {
   assert.deepEqual(parseSchedule('2026-10-20'), { date: '2026-10-20', start: null, end: null });
@@ -43,7 +43,7 @@ test('start-only schedule defaults to a one hour event', () => {
 });
 
 test('timed event converts back to the local time range', () => {
-  const times = { start: { dateTime: '2026-10-20T18:00:00Z' }, end: { dateTime: '2026-10-20T19:15:00Z' } };
+  const times = { start: { dateTime: '2026-10-20T12:00:00Z' }, end: { dateTime: '2026-10-20T13:15:00Z' } };
   assert.equal(fromEventTimes(times, TZ), '2026-10-20 14:00-15:15');
 });
 
@@ -72,6 +72,6 @@ test('effective schedule fills in the default end', () => {
 });
 
 test('timed event crossing midnight collapses to its start', () => {
-  const times = { start: { dateTime: '2026-10-21T03:30:00Z' }, end: { dateTime: '2026-10-21T04:30:00Z' } };
+  const times = { start: { dateTime: '2026-10-20T21:30:00Z' }, end: { dateTime: '2026-10-20T22:30:00Z' } };
   assert.equal(fromEventTimes(times, TZ), '2026-10-20 23:30');
 });

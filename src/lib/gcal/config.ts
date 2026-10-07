@@ -20,7 +20,7 @@ export function loadGcalConfig(env: NodeJS.ProcessEnv = process.env): GcalConfig
     calendarId,
     keyFile,
     stateFile: env.GCAL_STATE_FILE || path.join(path.dirname(keyFile), 'gcal-state.json'),
-    timeZone: env.GCAL_TIMEZONE || 'America/New_York',
+    timeZone: env.GCAL_TIMEZONE || Intl.DateTimeFormat().resolvedOptions().timeZone,
     excludePrefix: env.GCAL_EXCLUDE_PREFIX || null,
     publicUrl: env.MINDBOARD_PUBLIC_URL || null,
     pollSeconds: Math.max(30, Math.floor(Number(env.GCAL_POLL_SECONDS) || 120)),

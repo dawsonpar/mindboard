@@ -64,7 +64,7 @@ missing:
 | `GCAL_CALENDAR_ID` | the dedicated calendar's id |
 | `GCAL_SA_KEY_FILE` | path to the service account JSON key (keep outside the repo) |
 | `GCAL_EXCLUDE_PREFIX` | project prefix to skip, optional |
-| `GCAL_TIMEZONE` | default `America/New_York` |
+| `GCAL_TIMEZONE` | IANA zone for schedule times, default the server's zone |
 | `GCAL_POLL_SECONDS` | default `120` |
 | `GCAL_STATE_FILE` | sync cursor, last pushed values and retry list; default next to the key |
 | `MINDBOARD_PUBLIC_URL` | base URL for the card link in each event |
