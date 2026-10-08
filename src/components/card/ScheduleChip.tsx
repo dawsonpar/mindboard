@@ -6,19 +6,18 @@ const inputClass =
   'bg-obsidian-bg border border-obsidian-border rounded-input text-obsidian-text px-2 py-1 text-sm focus:outline-none focus:border-obsidian-accent';
 
 /**
- * Human label for a canonical schedule string. Full: "Tue, Oct 20, 2:00 PM-3:00 PM".
+ * Human label for a canonical schedule string. Full: "Oct 20, 2:00-3:30 PM".
  * Compact (board cards): "Oct 20, 2:00 PM".
  */
 export function scheduleLabel(schedule: string, isCompact = false): string {
   const [date, range] = schedule.split(' ');
-  const day = new Date(`${date}T12:00:00`).toLocaleDateString(undefined, {
-    weekday: isCompact ? undefined : 'short', month: 'short', day: 'numeric',
-  });
+  const day = new Date(`${date}T12:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   if (!range) return day;
   const time = (hhmm: string) =>
     new Date(`${date}T${hhmm}:00`).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
-  const times = range.split('-');
-  return `${day}, ${(isCompact ? times.slice(0, 1) : times).map(time).join('-')}`;
+  const [start, end] = range.split('-').map(time);
+  if (isCompact || !end) return `${day}, ${start}`;
+  return `${day}, ${shareDayPeriod(start, end)}`;
 }
 
 export function ScheduleChip({
@@ -48,16 +47,18 @@ export function ScheduleChip({
   }, [open]);
 
   return (
-    <div ref={wrapRef} className="relative inline-flex">
+    <div ref={wrapRef} className="relative inline-flex min-w-0">
       <button
         type="button"
         aria-label="Set schedule"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className="cursor-pointer"
+        className="cursor-pointer min-w-0 max-w-full"
       >
         {value ? (
-          <span className="card-chip chip-date">{scheduleLabel(value)}</span>
+          <span className="card-chip chip-date">
+            <span>{scheduleLabel(value)}</span>
+          </span>
         ) : (
           <span className="card-chip chip-ghost">+ date</span>
         )}
@@ -79,29 +80,41 @@ function ScheduleForm({ value, onSubmit }: { value: string | null; onSubmit: (v:
   const [initialDate, initialRange = ''] = (value ?? '').split(' ');
   const [initialStart = '', initialEnd = ''] = initialRange.split('-');
   const [date, setDate] = useState(initialDate);
-  const [start, setStart] = useState(initialStart);
-  const [end, setEnd] = useState(initialEnd);
+  const [isAllDay, setIsAllDay] = useState(initialStart === '');
+  const [start, setStart] = useState(initialStart || DEFAULT_START);
+  const [end, setEnd] = useState(initialEnd || addHour(initialStart || DEFAULT_START));
 
-  const isEndValid = !end || (start !== '' && end > start);
-  const canSave = date !== '' && isEndValid;
+  const isTimeValid = isAllDay || (start !== '' && end > start);
+  const canSave = date !== '' && isTimeValid;
 
   function save() {
     if (!canSave) return;
-    onSubmit([date, start && (end ? `${start}-${end}` : start)].filter(Boolean).join(' '));
+    onSubmit(isAllDay ? date : `${date} ${start}-${end}`);
   }
 
   return (
-    <div className="card-popover gap-2 p-3" role="dialog" aria-label="Schedule">
+    <div className="card-popover card-popover-end gap-3 p-3" role="dialog" aria-label="Schedule">
       <input type="date" aria-label="Date" className={inputClass} value={date} onChange={(e) => setDate(e.target.value)} />
-      <div className="flex items-center gap-2">
-        <input type="time" aria-label="Start time" className={inputClass} value={start} onChange={(e) => setStart(e.target.value)} />
-        <span className="text-obsidian-muted text-sm">to</span>
-        <input type="time" aria-label="End time" className={inputClass} value={end} onChange={(e) => setEnd(e.target.value)} />
-      </div>
-      <p className="text-xs text-obsidian-muted">No time makes it all-day. No end makes it one hour.</p>
-      {!isEndValid && (
-        <p className="text-xs text-obsidian-text">{start ? 'End must be after the start time.' : 'Set a start time first.'}</p>
+      <label className="flex items-center justify-between gap-3 text-sm text-obsidian-text cursor-pointer">
+        All day
+        <button
+          type="button"
+          role="switch"
+          aria-checked={isAllDay}
+          onClick={() => setIsAllDay((v) => !v)}
+          className={`schedule-switch${isAllDay ? ' is-on' : ''}`}
+        >
+          <span className="schedule-switch-knob" />
+        </button>
+      </label>
+      {!isAllDay && (
+        <div className="flex items-center gap-2">
+          <input type="time" aria-label="Start time" className={`${inputClass} flex-1 min-w-0`} value={start} onChange={(e) => setStart(e.target.value)} />
+          <span className="text-obsidian-muted text-sm">to</span>
+          <input type="time" aria-label="End time" className={`${inputClass} flex-1 min-w-0`} value={end} onChange={(e) => setEnd(e.target.value)} />
+        </div>
       )}
+      {!isTimeValid && <p className="text-xs text-obsidian-text">End must be after the start time.</p>}
       <div className="flex justify-between gap-2">
         {value ? (
           <button type="button" className="card-pop-item" onClick={() => onSubmit(null)}>
@@ -116,4 +129,18 @@ function ScheduleForm({ value, onSubmit }: { value: string | null; onSubmit: (v:
       </div>
     </div>
   );
+}
+
+const DEFAULT_START = '09:00';
+
+function addHour(hhmm: string): string {
+  const [h, m] = hhmm.split(':').map(Number);
+  return `${String(Math.min(h + 1, 23)).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
+/** "2:00 PM" + "3:30 PM" becomes "2:00-3:30 PM" when both share the same AM/PM suffix. */
+function shareDayPeriod(start: string, end: string): string {
+  const suffix = (t: string) => t.match(/\s*\D+$/)?.[0] ?? '';
+  const startSuffix = suffix(start);
+  return startSuffix && startSuffix === suffix(end) ? `${start.slice(0, -startSuffix.length)}-${end}` : `${start}-${end}`;
 }
