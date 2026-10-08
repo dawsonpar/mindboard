@@ -367,6 +367,8 @@ select {
   color: var(--color-obsidian-text); white-space: nowrap;
 }
 .card-pop-item:hover { background: color-mix(in srgb, var(--color-obsidian-text), transparent 92%); }
+/* Text edges line up with the fields above; padding is fixed so the mobile rule cannot shift it. */
+.card-pop-item.schedule-action { padding: 6px 8px; margin: 0 -8px; font-size: 14px; }
 
 /* mobile TOC disclosure toggle — hidden on desktop (TOC always shown) */
 .card-toc-toggle {

@@ -95,6 +95,15 @@ function ScheduleForm({ value, onSubmit }: { value: string | null; onSubmit: (v:
   return (
     <div className="card-popover card-popover-end gap-3 p-3" role="dialog" aria-label="Schedule">
       <input type="date" aria-label="Date" className={inputClass} value={date} onChange={(e) => setDate(e.target.value)} />
+      <fieldset
+        disabled={isAllDay}
+        aria-label="Time"
+        className={`flex min-w-0 items-center gap-2 transition-opacity duration-150 ${isAllDay ? 'opacity-40' : ''}`}
+      >
+        <input type="time" aria-label="Start time" className={`${inputClass} flex-1 min-w-0`} value={start} onChange={(e) => setStart(e.target.value)} />
+        <span className="text-obsidian-muted text-sm">to</span>
+        <input type="time" aria-label="End time" className={`${inputClass} flex-1 min-w-0`} value={end} onChange={(e) => setEnd(e.target.value)} />
+      </fieldset>
       <label className="flex items-center justify-between gap-3 text-sm text-obsidian-text cursor-pointer">
         All day
         <button
@@ -107,23 +116,16 @@ function ScheduleForm({ value, onSubmit }: { value: string | null; onSubmit: (v:
           <span className="schedule-switch-knob" />
         </button>
       </label>
-      {!isAllDay && (
-        <div className="flex items-center gap-2">
-          <input type="time" aria-label="Start time" className={`${inputClass} flex-1 min-w-0`} value={start} onChange={(e) => setStart(e.target.value)} />
-          <span className="text-obsidian-muted text-sm">to</span>
-          <input type="time" aria-label="End time" className={`${inputClass} flex-1 min-w-0`} value={end} onChange={(e) => setEnd(e.target.value)} />
-        </div>
-      )}
       {!isTimeValid && <p className="text-xs text-obsidian-text">End must be after the start time.</p>}
       <div className="flex justify-between gap-2">
         {value ? (
-          <button type="button" className="card-pop-item" onClick={() => onSubmit(null)}>
+          <button type="button" className="card-pop-item schedule-action" onClick={() => onSubmit(null)}>
             Clear
           </button>
         ) : (
           <span />
         )}
-        <button type="button" className="card-pop-item" disabled={!canSave} onClick={save}>
+        <button type="button" className="card-pop-item schedule-action" disabled={!canSave} onClick={save}>
           Save
         </button>
       </div>
