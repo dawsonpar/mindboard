@@ -118,7 +118,8 @@ select {
   border: 1px solid var(--color-obsidian-border);
   max-width: 100%;
 }
-.chip-date > span { overflow: hidden; text-overflow: ellipsis; }
+/* Half-pixel lift: numeral-heavy text in an outlined pill reads low when metrically centered. */
+.chip-date > span { overflow: hidden; text-overflow: ellipsis; transform: translateY(-0.5px); }
 
 /* All-day switch: text/bg token pair so it reads in any theme. */
 .schedule-switch {
@@ -361,7 +362,9 @@ select {
   display: flex; flex-direction: column; gap: 3px; min-width: 160px;
 }
 /* Schedule editor: anchored to the chip's right edge, one even gap between rows. */
-.card-popover.schedule-editor { left: auto; right: 0; width: 320px; max-width: calc(100vw - 32px); padding: 16px; gap: 14px; }
+.card-popover.schedule-editor { left: auto; right: 0; width: 320px; max-width: calc(100vw - 32px); padding: 16px; gap: 7px; }
+/* Label and footer rows inset to the fields' text: 1px border + 8px input padding. */
+.schedule-editor .schedule-row { padding: 0 9px; }
 .card-pop-item {
   display: flex; align-items: center; gap: 9px; background: none; border: none; cursor: pointer;
   padding: 6px 8px; border-radius: 7px; text-align: left; font-size: 13px;

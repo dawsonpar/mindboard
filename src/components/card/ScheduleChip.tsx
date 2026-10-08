@@ -104,7 +104,7 @@ function ScheduleForm({ value, onSubmit }: { value: string | null; onSubmit: (v:
         <span className="text-obsidian-muted text-sm">to</span>
         <input type="time" aria-label="End time" className={`${inputClass} flex-1 min-w-0`} value={end} onChange={(e) => setEnd(e.target.value)} />
       </fieldset>
-      <label className="flex items-center justify-between gap-3 text-sm text-obsidian-text cursor-pointer">
+      <label className="schedule-row flex items-center justify-between gap-3 text-sm text-obsidian-text cursor-pointer">
         All day
         <button
           type="button"
@@ -117,7 +117,7 @@ function ScheduleForm({ value, onSubmit }: { value: string | null; onSubmit: (v:
         </button>
       </label>
       {!isTimeValid && <p className="text-xs text-obsidian-text">End must be after the start time.</p>}
-      <div className="flex justify-between gap-2">
+      <div className="schedule-row flex justify-between gap-2">
         {value ? (
           <button type="button" className="card-pop-item schedule-action" onClick={() => onSubmit(null)}>
             Clear
