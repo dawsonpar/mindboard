@@ -48,3 +48,7 @@ docs/card-mockups/
 
 # machine-local config (never commit)
 **/settings.local.json
+
+# calendar sync credentials and state (normally kept outside the repo)
+gcal-state.json
+*-sa.json

@@ -25,3 +25,4 @@ Decision, Consequences, Alternatives considered.
 - [0001 - Dedicated card route](0001-dedicated-card-route.md)
 - [0002 - Hybrid card editing](0002-hybrid-card-editing.md)
 - [0003 - Closed card schema](0003-closed-card-schema.md)
+- [0004 - Card schedule with Google Calendar sync](0004-calendar-sync-schedule.md)

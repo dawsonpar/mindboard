@@ -44,4 +44,13 @@ export function applyTheme(theme: ThemeColors) {
   root.style.setProperty('--color-obsidian-text', theme.text);
   root.style.setProperty('--color-obsidian-muted', theme.muted);
   root.style.setProperty('--color-obsidian-border', theme.border);
+  root.style.colorScheme = isDarkColor(theme.bg) ? 'dark' : 'light';
+}
+
+/** Lets native controls (date and time picker icons, scrollbars) match the palette. */
+function isDarkColor(hex: string): boolean {
+  const m = hex.replace('#', '').match(/^([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i);
+  if (!m) return false;
+  const [r, g, b] = m.slice(1).map((c) => parseInt(c, 16) / 255);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b < 0.5;
 }

@@ -6,6 +6,7 @@ import { Outline } from './Outline';
 import { EditableTitle } from './EditableTitle';
 import { EditableMarkdown } from './EditableMarkdown';
 import { StatusChip, PriorityChip, ComplexityChip } from './Chips';
+import { ScheduleChip } from './ScheduleChip';
 import { CollapsibleSection } from './CollapsibleSection';
 import { TaskSection } from './TaskSection';
 import { ReferenceSection } from './ReferenceSection';
@@ -26,6 +27,7 @@ export function CardArticle({ card, allCards, onSave }: CardArticleProps) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({
     tasks: false,
     references: false,
+    'event-notes': false,
     notes: false,
   });
   const toggle = (id: string) => setCollapsed((c) => ({ ...c, [id]: !c[id] }));
@@ -40,6 +42,7 @@ export function CardArticle({ card, allCards, onSave }: CardArticleProps) {
         descriptionMd={card.description}
         backHref="/"
         backLabel={`Board / ${card.project}`}
+        hasEventNotes={Boolean(card.schedule || card.eventNotes)}
         onExpand={expand}
       />
 
@@ -48,6 +51,7 @@ export function CardArticle({ card, allCards, onSave }: CardArticleProps) {
           <StatusChip value={card.status} onChange={(v: CardStatus) => onSave({ status: v })} />
           <PriorityChip value={card.priority} onChange={(v: CardPriority | null) => onSave({ priority: v })} />
           <ComplexityChip value={card.complexity} onChange={(v) => onSave({ complexity: v })} />
+          <ScheduleChip value={card.schedule} onChange={(v) => onSave({ schedule: v })} />
         </div>
 
         <EditableTitle value={card.title} onCommit={(v) => onSave({ title: v })} />
@@ -92,6 +96,23 @@ export function CardArticle({ card, allCards, onSave }: CardArticleProps) {
             onChange={(references) => onSave({ references })}
           />
         </CollapsibleSection>
+
+        {(card.schedule || card.eventNotes) && (
+          <CollapsibleSection
+            id="event-notes"
+            title="Event notes"
+            meta="calendar description"
+            collapsed={collapsed['event-notes']}
+            onToggle={() => toggle('event-notes')}
+          >
+            <EditableMarkdown
+              value={card.eventNotes}
+              placeholder="Add text for the calendar event…"
+              className="card-note"
+              onCommit={(v) => onSave({ eventNotes: v })}
+            />
+          </CollapsibleSection>
+        )}
 
         <CollapsibleSection
           id="notes"

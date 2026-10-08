@@ -4,6 +4,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getConfig } from '@/lib/configManager';
 import { parseCardContent } from '@/lib/cardParser';
 import { cardToMarkdown } from '@/lib/cardWriter';
+import { pushCard } from '@/lib/gcal/sync';
+import { readScheduleInput } from '@/lib/schedule';
 import type { Card, CardPriority, CardStatus } from '@/types/card';
 
 export async function GET(request: NextRequest) {
@@ -76,6 +78,8 @@ interface CreateCardBody {
   status?: CardStatus;
   priority?: CardPriority;
   complexity?: number;
+  schedule?: string | null;
+  eventNotes?: string;
   description?: string;
 }
 
@@ -87,6 +91,14 @@ export async function POST(request: NextRequest) {
       { error: 'Missing required fields: project and title' },
       { status: 400 }
     );
+  }
+
+  const schedule = body.schedule === undefined ? null : readScheduleInput(body.schedule);
+  if (schedule && !schedule.isValid) {
+    return NextResponse.json({ error: schedule.error }, { status: 400 });
+  }
+  if (body.eventNotes !== undefined && typeof body.eventNotes !== 'string') {
+    return NextResponse.json({ error: 'eventNotes must be a string' }, { status: 400 });
   }
 
   const config = getConfig();
@@ -125,6 +137,8 @@ export async function POST(request: NextRequest) {
     status: body.status ?? 'TODO',
     priority: body.priority ?? null,
     complexity: body.complexity ?? null,
+    schedule: schedule?.isValid ? schedule.value : null,
+    eventNotes: body.eventNotes ?? '',
     description: body.description ?? '',
     tasks: [],
     references: [],
@@ -146,6 +160,8 @@ export async function POST(request: NextRequest) {
     absolutePath,
     { birthtimeMs: stats.birthtimeMs, mtimeMs: stats.mtimeMs }
   );
+
+  void pushCard(body.project, filename);
 
   return NextResponse.json(createdCard, { status: 201 });
 }

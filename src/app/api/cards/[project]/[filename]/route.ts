@@ -5,6 +5,8 @@ import { getConfig } from '@/lib/configManager';
 import { parseCardContent } from '@/lib/cardParser';
 import { cardToMarkdown } from '@/lib/cardWriter';
 import { markRecentWrite } from '@/lib/fileWatcher';
+import { pushCard } from '@/lib/gcal/sync';
+import { readScheduleInput } from '@/lib/schedule';
 import type { Card, CardPriority, CardStatus, Task } from '@/types/card';
 
 interface RouteParams {
@@ -16,6 +18,8 @@ interface CardUpdateBody {
   status?: CardStatus;
   priority?: CardPriority;
   complexity?: number | null;
+  schedule?: string | null;
+  eventNotes?: string;
   description?: string;
   tasks?: Task[];
   references?: string[];
@@ -45,6 +49,14 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     );
   }
 
+  const schedule = body.schedule === undefined ? null : readScheduleInput(body.schedule);
+  if (schedule && !schedule.isValid) {
+    return NextResponse.json({ error: schedule.error }, { status: 400 });
+  }
+  if (body.eventNotes !== undefined && typeof body.eventNotes !== 'string') {
+    return NextResponse.json({ error: 'eventNotes must be a string' }, { status: 400 });
+  }
+
   const content = fs.readFileSync(absolutePath, 'utf-8');
   const stats = fs.statSync(absolutePath);
   const card = parseCardContent(content, filename, project, absolutePath, {
@@ -61,6 +73,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     priority: body.priority !== undefined ? body.priority : card.priority,
     complexity:
       body.complexity !== undefined ? body.complexity : card.complexity,
+    schedule: schedule?.isValid ? schedule.value : card.schedule,
+    eventNotes: body.eventNotes ?? card.eventNotes,
     description: body.description ?? card.description,
     tasks: body.tasks ?? card.tasks,
     references: newReferences,
@@ -123,6 +137,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     absolutePath,
     { birthtimeMs: newStats.birthtimeMs, mtimeMs: newStats.mtimeMs }
   );
+
+  void pushCard(project, filename);
 
   return NextResponse.json(resultCard);
 }

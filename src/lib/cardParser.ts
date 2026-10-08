@@ -1,4 +1,5 @@
 import type { Card, CardPriority, CardStatus, Task } from '@/types/card';
+import { formatSchedule, parseSchedule } from '@/lib/schedule';
 
 /** A raw "## Heading" block. Internal to the parser only. */
 interface Section {
@@ -8,7 +9,7 @@ interface Section {
 
 /** Headings the schema maps to dedicated fields. Everything else folds into Description. */
 const KNOWN_HEADINGS = new Set([
-  'title', 'status', 'priority', 'complexity', 'description', 'tasks', 'references', 'comments',
+  'title', 'status', 'priority', 'complexity', 'schedule', 'event notes', 'description', 'tasks', 'references', 'comments',
 ]);
 
 const VALID_STATUSES: CardStatus[] = ['TODO', 'IN PROGRESS', 'REVIEW', 'COMPLETED'];
@@ -172,6 +173,15 @@ export function parseCardContent(
   const priority = parsePriority(priorityRaw);
   const complexity = parseComplexity(findSection(sections, 'Complexity'));
 
+  const scheduleRaw = findSection(sections, 'Schedule');
+  const parsedSchedule = scheduleRaw ? parseSchedule(scheduleRaw) : null;
+  if (scheduleRaw && !parsedSchedule) {
+    hasErrors = true;
+    errorMessages.push(`Invalid schedule "${scheduleRaw.trim()}", expected YYYY-MM-DD [HH:MM[-HH:MM]]`);
+  }
+  const schedule = parsedSchedule ? formatSchedule(parsedSchedule) : null;
+  const eventNotes = findSection(sections, 'Event Notes') ?? '';
+
   const baseDescription = findSection(sections, 'Description') ?? '';
   const customParts = sections
     .filter((s) => !KNOWN_HEADINGS.has(s.heading.toLowerCase()))
@@ -189,6 +199,8 @@ export function parseCardContent(
     status,
     priority,
     complexity,
+    schedule,
+    eventNotes,
     description,
     tasks,
     references,

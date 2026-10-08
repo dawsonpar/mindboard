@@ -19,6 +19,8 @@ The card schema is **closed**. A card is exactly these sections, in this order:
 
     Title, Status, Priority, Complexity, Description, Tasks, References, Comments
 
+Amended by 0004, which adds Schedule and Event Notes after Complexity.
+
 There is no "custom section" concept. Any other `## Heading` found in a file is
 **folded into the Description** as a `### Heading` subsection at parse time, and
 the file is rewritten in canonical section order on the next save.
