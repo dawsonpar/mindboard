@@ -386,6 +386,31 @@ select {
 }
 .time-opt:hover { background: color-mix(in srgb, var(--color-obsidian-text), transparent 92%); }
 .time-opt.is-selected { background: var(--color-obsidian-text); color: var(--color-obsidian-bg); }
+/* Date picker: month grid, same surfaces and selected style as the time picker. */
+.date-select-pop {
+  position: absolute; top: 100%; left: 0; margin-top: 6px; z-index: 60; width: 100%;
+  background: var(--color-obsidian-panel); border: 1px solid var(--color-obsidian-border);
+  border-radius: 10px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25); padding: 8px;
+}
+.date-head {
+  display: flex; align-items: center; justify-content: space-between; padding: 0 2px 6px;
+  font-size: 13px; color: var(--color-obsidian-text);
+}
+.date-nav {
+  display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px;
+  border: none; border-radius: 7px; background: none; cursor: pointer; color: var(--color-obsidian-text);
+}
+.date-nav:hover { background: color-mix(in srgb, var(--color-obsidian-text), transparent 92%); }
+.date-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.date-weekday { font-size: 11px; text-align: center; color: var(--color-obsidian-muted); padding: 4px 0; }
+.date-day {
+  height: 30px; border: none; border-radius: 7px; background: none; cursor: pointer;
+  font-size: 13px; font-variant-numeric: tabular-nums; color: var(--color-obsidian-text);
+}
+.date-day:hover { background: color-mix(in srgb, var(--color-obsidian-text), transparent 92%); }
+.date-day.is-outside { color: var(--color-obsidian-muted); }
+.date-day.is-today { box-shadow: inset 0 0 0 1px var(--color-obsidian-border); }
+.date-day.is-selected { background: var(--color-obsidian-text); color: var(--color-obsidian-bg); box-shadow: none; }
 .card-pop-item:hover { background: color-mix(in srgb, var(--color-obsidian-text), transparent 92%); }
 /* Padding is cancelled by margin so the row box is just the text: edges and row gaps match the fields. */
 .card-pop-item.schedule-action { padding: 4px 8px; margin: -4px -8px; font-size: 14px; line-height: 17px; }

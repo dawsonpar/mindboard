@@ -39,10 +39,11 @@ export function TimeSelect({ value, onChange, ariaLabel, className, align = 'sta
         aria-label={ariaLabel}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className={`${className} w-full text-left`}
+        className={`${className} w-full flex items-center justify-between gap-2 text-left`}
         onClick={() => setOpen((o) => !o)}
       >
-        {`${hour12}:${String(minute).padStart(2, '0')} ${period}`}
+        <span className="truncate">{`${hour12}:${String(minute).padStart(2, '0')} ${period}`}</span>
+        <ClockIcon />
       </button>
       {open && (
         <div className={`time-select-pop${align === 'end' ? ' is-end' : ''}`}>
@@ -58,6 +59,15 @@ export function TimeSelect({ value, onChange, ariaLabel, className, align = 'sta
         </div>
       )}
     </div>
+  );
+}
+
+function ClockIcon() {
+  return (
+    <svg className="shrink-0" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <circle cx="8" cy="8" r="6.25" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M8 4.75V8l2.25 1.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }
 

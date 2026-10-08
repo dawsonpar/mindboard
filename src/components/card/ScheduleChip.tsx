@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { DateSelect } from './DateSelect';
 import { TimeSelect } from './TimeSelect';
 
 const inputClass =
@@ -109,7 +110,7 @@ function ScheduleForm({ value, onSubmit }: { value: string | null; onSubmit: (v:
       role="dialog"
       aria-label="Schedule"
     >
-      <input type="date" aria-label="Date" className={inputClass} value={date} onChange={(e) => setDate(e.target.value)} />
+      <DateSelect ariaLabel="Date" className={inputClass} value={date} onChange={setDate} />
       <fieldset
         disabled={isAllDay}
         aria-label="Time"
