@@ -360,15 +360,16 @@ select {
   border-radius: 10px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25); padding: 6px;
   display: flex; flex-direction: column; gap: 3px; min-width: 160px;
 }
-.card-popover.card-popover-end { left: auto; right: 0; width: 280px; max-width: calc(100vw - 32px); }
+/* Schedule editor: anchored to the chip's right edge, one even gap between rows. */
+.card-popover.schedule-editor { left: auto; right: 0; width: 320px; max-width: calc(100vw - 32px); padding: 16px; gap: 14px; }
 .card-pop-item {
   display: flex; align-items: center; gap: 9px; background: none; border: none; cursor: pointer;
   padding: 6px 8px; border-radius: 7px; text-align: left; font-size: 13px;
   color: var(--color-obsidian-text); white-space: nowrap;
 }
 .card-pop-item:hover { background: color-mix(in srgb, var(--color-obsidian-text), transparent 92%); }
-/* Text edges line up with the fields above; padding is fixed so the mobile rule cannot shift it. */
-.card-pop-item.schedule-action { padding: 6px 8px; margin: 0 -8px; font-size: 14px; }
+/* Padding is cancelled by margin so the row box is just the text: edges and row gaps match the fields. */
+.card-pop-item.schedule-action { padding: 4px 8px; margin: -4px -8px; font-size: 14px; line-height: 17px; }
 
 /* mobile TOC disclosure toggle — hidden on desktop (TOC always shown) */
 .card-toc-toggle {

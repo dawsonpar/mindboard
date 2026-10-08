@@ -93,7 +93,7 @@ function ScheduleForm({ value, onSubmit }: { value: string | null; onSubmit: (v:
   }
 
   return (
-    <div className="card-popover card-popover-end gap-3 p-3" role="dialog" aria-label="Schedule">
+    <div className="card-popover schedule-editor" role="dialog" aria-label="Schedule">
       <input type="date" aria-label="Date" className={inputClass} value={date} onChange={(e) => setDate(e.target.value)} />
       <fieldset
         disabled={isAllDay}
