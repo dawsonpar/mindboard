@@ -12,11 +12,10 @@ interface TimeSelectProps {
   onChange: (value: string) => void;
   ariaLabel: string;
   className: string;
-  align?: 'start' | 'end';
 }
 
 /** Themed time picker: hours 1-12, minutes in 5-minute steps, AM/PM. */
-export function TimeSelect({ value, onChange, ariaLabel, className, align = 'start' }: TimeSelectProps) {
+export function TimeSelect({ value, onChange, ariaLabel, className }: TimeSelectProps) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const { hour12, minute, period } = toParts(value);
@@ -27,6 +26,11 @@ export function TimeSelect({ value, onChange, ariaLabel, className, align = 'sta
       if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
     }
     document.addEventListener('mousedown', onDoc);
+    // Columns show two rows; start each one on its selected value without scrolling the page.
+    wrapRef.current?.querySelectorAll<HTMLElement>('.time-col').forEach((col) => {
+      const selected = col.querySelector<HTMLElement>('.is-selected');
+      if (selected) col.scrollTop = selected.offsetTop;
+    });
     return () => document.removeEventListener('mousedown', onDoc);
   }, [open]);
 
@@ -46,7 +50,7 @@ export function TimeSelect({ value, onChange, ariaLabel, className, align = 'sta
         <ClockIcon />
       </button>
       {open && (
-        <div className={`time-select-pop${align === 'end' ? ' is-end' : ''}`}>
+        <div className="time-select-pop">
           <Column label="Hour" options={HOURS} selected={hour12} format={String} onPick={(h) => set({ hour12: h })} />
           <Column
             label="Minute"

@@ -118,7 +118,7 @@ function ScheduleForm({ value, onSubmit }: { value: string | null; onSubmit: (v:
       >
         <TimeSelect ariaLabel="Start time" className={inputClass} value={start} onChange={setStart} />
         <span className="text-obsidian-muted text-sm">to</span>
-        <TimeSelect ariaLabel="End time" className={inputClass} value={end} onChange={setEnd} align="end" />
+        <TimeSelect ariaLabel="End time" className={inputClass} value={end} onChange={setEnd} />
       </fieldset>
       <label className="schedule-row flex items-center justify-between gap-3 text-sm text-obsidian-text cursor-pointer">
         All day
