@@ -5,7 +5,7 @@ import type { Card, CardStatus, CardPriority } from '@/types/card';
 import { Outline } from './Outline';
 import { EditableTitle } from './EditableTitle';
 import { EditableMarkdown } from './EditableMarkdown';
-import { StatusChip, PriorityChip, ComplexityChip } from './Chips';
+import { StatusChip, PriorityChip } from './Chips';
 import { ScheduleChip } from './ScheduleChip';
 import { CollapsibleSection } from './CollapsibleSection';
 import { TaskSection } from './TaskSection';
@@ -50,7 +50,6 @@ export function CardArticle({ card, allCards, onSave }: CardArticleProps) {
         <div className="card-eyebrow">
           <StatusChip value={card.status} onChange={(v: CardStatus) => onSave({ status: v })} />
           <PriorityChip value={card.priority} onChange={(v: CardPriority | null) => onSave({ priority: v })} />
-          <ComplexityChip value={card.complexity} onChange={(v) => onSave({ complexity: v })} />
           <ScheduleChip value={card.schedule} onChange={(v) => onSave({ schedule: v })} />
         </div>
 

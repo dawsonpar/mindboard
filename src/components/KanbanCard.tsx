@@ -86,14 +86,6 @@ export function KanbanCard({ card, index, onCardClick, onArchive, isJustDropped 
                   {card.priority}
                 </span>
               )}
-              {card.complexity != null && (
-                <span
-                  className="bg-obsidian-text text-obsidian-bg text-[10px] font-semibold px-1.5 py-0.5 rounded-full leading-none shrink-0"
-                  title={`Complexity: ${card.complexity} point${card.complexity === 1 ? '' : 's'}`}
-                >
-                  {card.complexity}
-                </span>
-              )}
               {card.schedule && (
                 <span className="text-[10px] text-obsidian-muted shrink-0" title={`Scheduled: ${card.schedule}`}>
                   {scheduleLabel(card.schedule, true)}

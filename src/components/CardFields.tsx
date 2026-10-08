@@ -5,7 +5,6 @@ import type { Card, CardStatus, CardPriority, Task } from '@/types/card';
 
 const statuses: CardStatus[] = ['TODO', 'IN PROGRESS', 'REVIEW', 'COMPLETED'];
 const priorities: (CardPriority | '')[] = ['', 'P0', 'P1', 'P2', 'P3'];
-const complexityOptions = [1, 2, 3, 4, 5, 6, 7, 8];
 
 const inputClass =
   'w-full bg-obsidian-bg border border-obsidian-border rounded-input text-obsidian-text p-2 text-sm focus:outline-none focus:border-obsidian-accent';
@@ -15,7 +14,6 @@ export interface CardFieldsProps {
   titleError: string;
   status: CardStatus | null;
   priority: CardPriority | null;
-  complexity: number | null;
   description: string;
   comments: string;
   tasks: Task[];
@@ -28,7 +26,6 @@ export interface CardFieldsProps {
   onTitleBlur: () => void;
   onStatusChange: (v: string) => void;
   onPriorityChange: (v: string) => void;
-  onComplexityChange: (v: string) => void;
   onDescriptionChange: (v: string) => void;
   onDescriptionBlur: () => void;
   onCommentsChange: (v: string) => void;
@@ -46,7 +43,6 @@ export function CardFields({
   titleError,
   status,
   priority,
-  complexity,
   description,
   comments,
   tasks,
@@ -59,7 +55,6 @@ export function CardFields({
   onTitleBlur,
   onStatusChange,
   onPriorityChange,
-  onComplexityChange,
   onDescriptionChange,
   onDescriptionBlur,
   onCommentsChange,
@@ -153,23 +148,6 @@ export function CardFields({
               <option key={p} value={p}>
                 {p === '' ? 'Unset' : p}
               </option>
-            ))}
-          </select>
-        </div>
-        <div className="flex-1">
-          <label htmlFor="card-complexity" className="block text-xs text-obsidian-muted mb-1">
-            Complexity
-          </label>
-          <select
-            id="card-complexity"
-            value={complexity ?? ''}
-            onChange={(e) => onComplexityChange(e.target.value)}
-            className={`${inputClass} disabled:opacity-60 disabled:cursor-default`}
-            disabled={readOnly}
-          >
-            <option value="">Unset</option>
-            {complexityOptions.map((c) => (
-              <option key={c} value={c}>{c}</option>
             ))}
           </select>
         </div>

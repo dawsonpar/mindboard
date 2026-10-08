@@ -13,7 +13,7 @@ same element at once, so an editing affordance is needed for prose.
 
 A hybrid model:
 
-- Structured fields (status, priority, complexity, task checkboxes, references)
+- Structured fields (status, priority, complexity (removed by 0005), task checkboxes, references)
   are always live: one interaction changes them, with no edit mode.
 - The title and the markdown bodies (description, notes) render by default and
   become a raw-markdown editor on click, re-rendering and saving on blur.

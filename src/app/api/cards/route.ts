@@ -77,7 +77,6 @@ interface CreateCardBody {
   title: string;
   status?: CardStatus;
   priority?: CardPriority;
-  complexity?: number;
   schedule?: string | null;
   eventNotes?: string;
   description?: string;
@@ -136,7 +135,6 @@ export async function POST(request: NextRequest) {
     title: body.title.trim(),
     status: body.status ?? 'TODO',
     priority: body.priority ?? null,
-    complexity: body.complexity ?? null,
     schedule: schedule?.isValid ? schedule.value : null,
     eventNotes: body.eventNotes ?? '',
     description: body.description ?? '',

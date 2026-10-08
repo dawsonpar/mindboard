@@ -225,7 +225,6 @@ export default function Home() {
     title: string;
     status?: string;
     priority?: string;
-    complexity?: number;
     description?: string;
   }) {
     if (!selectedProject) return;

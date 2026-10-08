@@ -76,37 +76,3 @@ export function PriorityChip({
     </ChipMenu>
   );
 }
-
-/* ---------------- Complexity ---------------- */
-
-const COMPLEXITY = [1, 2, 3, 4, 5, 6, 7, 8];
-
-function cxPill(n: number) {
-  return (
-    <span className="card-chip bg-obsidian-text text-obsidian-bg">
-      {n}
-    </span>
-  );
-}
-
-export function ComplexityChip({
-  value,
-  onChange,
-}: {
-  value: number | null;
-  onChange: (v: number | null) => void;
-}) {
-  const items: ChipMenuItem[] = [
-    { value: '__unset', node: <span className="card-chip chip-ghost">Unset</span> },
-    ...COMPLEXITY.map((n) => ({ value: String(n), node: cxPill(n) })),
-  ];
-  return (
-    <ChipMenu
-      ariaLabel="Set complexity"
-      items={items}
-      onSelect={(v) => onChange(v === '__unset' ? null : Number(v))}
-    >
-      {value != null ? cxPill(value) : <span className="card-chip chip-ghost">+ cx</span>}
-    </ChipMenu>
-  );
-}

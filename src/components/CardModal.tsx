@@ -19,7 +19,6 @@ export function CardModal({ card, allCards, onClose, onSave, onNavigate, onExter
   const [title, setTitle] = useState(card.title);
   const [status, setStatus] = useState<CardStatus | null>(card.status);
   const [priority, setPriority] = useState<CardPriority | null>(card.priority);
-  const [complexity, setComplexity] = useState<number | null>(card.complexity);
   const [description, setDescription] = useState(card.description);
   const [tasks, setTasks] = useState<Task[]>(card.tasks);
   const [references, setReferences] = useState<string[]>(card.references);
@@ -34,7 +33,6 @@ export function CardModal({ card, allCards, onClose, onSave, onNavigate, onExter
     setTitle(card.title);
     setStatus(card.status);
     setPriority(card.priority);
-    setComplexity(card.complexity);
     setDescription(card.description);
     setTasks(card.tasks);
     setReferences(card.references);
@@ -104,12 +102,6 @@ export function CardModal({ card, allCards, onClose, onSave, onNavigate, onExter
     const newPriority = value === '' ? null : (value as CardPriority);
     setPriority(newPriority);
     scheduleSave({ priority: newPriority });
-  }
-
-  function handleComplexityChange(value: string) {
-    const newComplexity = value === '' ? null : Number(value);
-    setComplexity(newComplexity);
-    scheduleSave({ complexity: newComplexity });
   }
 
   function handleDescriptionBlur() {
@@ -219,7 +211,6 @@ export function CardModal({ card, allCards, onClose, onSave, onNavigate, onExter
           titleError={titleError}
           status={status}
           priority={priority}
-          complexity={complexity}
           description={description}
           comments={comments}
           tasks={tasks}
@@ -232,7 +223,6 @@ export function CardModal({ card, allCards, onClose, onSave, onNavigate, onExter
           onTitleBlur={handleTitleBlur}
           onStatusChange={handleStatusChange}
           onPriorityChange={handlePriorityChange}
-          onComplexityChange={handleComplexityChange}
           onDescriptionChange={setDescription}
           onDescriptionBlur={handleDescriptionBlur}
           onCommentsChange={setComments}

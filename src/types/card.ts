@@ -13,7 +13,6 @@ export interface Card {
   title: string;
   status: CardStatus | null;
   priority: CardPriority | null;
-  complexity: number | null;
   /** Canonical schedule string, see src/lib/schedule.ts. */
   schedule: string | null;
   /** Text mirrored into the calendar event's description. */

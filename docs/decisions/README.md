@@ -26,3 +26,4 @@ Decision, Consequences, Alternatives considered.
 - [0002 - Hybrid card editing](0002-hybrid-card-editing.md)
 - [0003 - Closed card schema](0003-closed-card-schema.md)
 - [0004 - Card schedule with Google Calendar sync](0004-calendar-sync-schedule.md)
+- [0005 - Remove the complexity field](0005-remove-complexity.md)
