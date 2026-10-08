@@ -28,6 +28,7 @@ export function cardToMarkdown(card: Card): string {
   if (card.priority) section('Priority', card.priority);
   if (card.complexity != null) section('Complexity', String(card.complexity));
   if (card.schedule) section('Schedule', card.schedule);
+  if (card.eventNotes.trim()) section('Event Notes', card.eventNotes.trim());
   section('Description', card.description);
   if (card.tasks.length > 0) section('Tasks', formatTasks(card.tasks));
   if (card.references.length > 0) section('References', formatReferences(card.references));

@@ -49,6 +49,16 @@ export class CalendarClient {
     }
   }
 
+  /** The live event, or null when it does not exist. */
+  async getEvent(id: string): Promise<CalendarEvent | null> {
+    try {
+      return (await this.request('GET', `/events/${id}`)) as CalendarEvent;
+    } catch (err) {
+      if (err instanceof CalendarHttpError && err.status === 404) return null;
+      throw err;
+    }
+  }
+
   async deleteEvent(id: string): Promise<void> {
     try {
       await this.request('DELETE', `/events/${id}`);

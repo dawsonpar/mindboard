@@ -79,6 +79,7 @@ interface CreateCardBody {
   priority?: CardPriority;
   complexity?: number;
   schedule?: string | null;
+  eventNotes?: string;
   description?: string;
 }
 
@@ -95,6 +96,9 @@ export async function POST(request: NextRequest) {
   const schedule = body.schedule === undefined ? null : readScheduleInput(body.schedule);
   if (schedule && !schedule.isValid) {
     return NextResponse.json({ error: schedule.error }, { status: 400 });
+  }
+  if (body.eventNotes !== undefined && typeof body.eventNotes !== 'string') {
+    return NextResponse.json({ error: 'eventNotes must be a string' }, { status: 400 });
   }
 
   const config = getConfig();
@@ -134,6 +138,7 @@ export async function POST(request: NextRequest) {
     priority: body.priority ?? null,
     complexity: body.complexity ?? null,
     schedule: schedule?.isValid ? schedule.value : null,
+    eventNotes: body.eventNotes ?? '',
     description: body.description ?? '',
     tasks: [],
     references: [],

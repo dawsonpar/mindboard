@@ -9,7 +9,7 @@ interface Section {
 
 /** Headings the schema maps to dedicated fields. Everything else folds into Description. */
 const KNOWN_HEADINGS = new Set([
-  'title', 'status', 'priority', 'complexity', 'schedule', 'description', 'tasks', 'references', 'comments',
+  'title', 'status', 'priority', 'complexity', 'schedule', 'event notes', 'description', 'tasks', 'references', 'comments',
 ]);
 
 const VALID_STATUSES: CardStatus[] = ['TODO', 'IN PROGRESS', 'REVIEW', 'COMPLETED'];
@@ -180,6 +180,7 @@ export function parseCardContent(
     errorMessages.push(`Invalid schedule "${scheduleRaw.trim()}", expected YYYY-MM-DD [HH:MM[-HH:MM]]`);
   }
   const schedule = parsedSchedule ? formatSchedule(parsedSchedule) : null;
+  const eventNotes = findSection(sections, 'Event Notes') ?? '';
 
   const baseDescription = findSection(sections, 'Description') ?? '';
   const customParts = sections
@@ -199,6 +200,7 @@ export function parseCardContent(
     priority,
     complexity,
     schedule,
+    eventNotes,
     description,
     tasks,
     references,

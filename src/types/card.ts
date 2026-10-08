@@ -16,6 +16,8 @@ export interface Card {
   complexity: number | null;
   /** Canonical schedule string, see src/lib/schedule.ts. */
   schedule: string | null;
+  /** Text mirrored into the calendar event's description. */
+  eventNotes: string;
   description: string;
   tasks: Task[];
   references: string[];

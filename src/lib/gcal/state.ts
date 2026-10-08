@@ -6,6 +6,7 @@ export interface PushedEvent {
   schedule: string | null;
   summary: string;
   colorId: string | null;
+  description?: string;
   pushedAt: string;
 }
 

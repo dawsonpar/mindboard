@@ -52,6 +52,14 @@ Scheduled cards mirror to one dedicated Google calendar:
   re-pushed on the next sync.
 - `GCAL_EXCLUDE_PREFIX` has no default; leaving it unset syncs every
   project.
+- **Event Notes:** an optional `## Event Notes` section (after Schedule)
+  becomes the event description, followed by the card link. Descriptions
+  sync one way, MindBoard to Google, and are patched only when the notes
+  change, so title or status pushes never touch them.
+  `GET /api/cards/:project/:file/event` returns the live description and
+  whether it was edited in Google since the last push, so a client can
+  carry that text over before replacing it; the CLI refuses to overwrite
+  such an edit without `--force`.
 - Projects matching `GCAL_EXCLUDE_PREFIX` never sync.
 
 ## Operating it
@@ -72,7 +80,7 @@ missing:
 ## Consequences
 
 - Section order is now Title, Status, Priority, Complexity, Schedule,
-  Description, Tasks, References, Comments (amends 0003).
+  Event Notes, Description, Tasks, References, Comments (amends 0003).
 - Multi-day events and timed events that cross midnight collapse to their
   start day when pulled back.
 - Events created directly on the calendar without card metadata are ignored.

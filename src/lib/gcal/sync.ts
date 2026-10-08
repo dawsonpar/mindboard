@@ -17,7 +17,15 @@ interface Sync {
   state: SyncState;
 }
 
-type Desired = Pick<PushedEvent, 'schedule' | 'summary' | 'colorId'>;
+type Desired = Pick<PushedEvent, 'schedule' | 'summary' | 'colorId'> & { description: string };
+
+export interface EventInspection {
+  isSynced: boolean;
+  exists: boolean;
+  description: string | null;
+  lastPushedDescription: string | null;
+  isEditedInGoogle: boolean;
+}
 
 // Next loads instrumentation and route handlers as separate module instances; globalThis keeps one sync.
 const shared = globalThis as typeof globalThis & {
@@ -34,6 +42,28 @@ export function pushCard(project: string, filename: string): Promise<void> {
   return enqueue(eventIdFor(project, filename), () => pushNow(s, project, filename)).catch((err) => {
     console.error(`[gcal] push ${project}/${filename} failed:`, err);
   });
+}
+
+/**
+ * Reads the live event so an agent can see text added in Google before changing the card's
+ * Event Notes. Sync is one-way for descriptions, so this is the only way such edits surface.
+ */
+export async function inspectEvent(project: string, filename: string): Promise<EventInspection> {
+  const s = getSync();
+  const none = { exists: false, description: null, lastPushedDescription: null, isEditedInGoogle: false };
+  if (!s || !isProjectSynced(s.config, project)) return { isSynced: false, ...none };
+  const id = eventIdFor(project, filename);
+  const event = await s.client.getEvent(id);
+  if (!event || event.status === 'cancelled') return { isSynced: true, ...none };
+  const description = event.description ?? '';
+  const lastPushedDescription = s.state.pushed[id]?.description ?? null;
+  return {
+    isSynced: true,
+    exists: true,
+    description,
+    lastPushedDescription,
+    isEditedInGoogle: lastPushedDescription !== null && description !== lastPushedDescription,
+  };
 }
 
 /** Applies calendar-side moves and deletions back onto cards. A failure leaves the cursor in place. */
@@ -125,8 +155,9 @@ async function sendPush(s: Sync, card: Card, id: string, desired: Desired, last?
     await s.client.deleteEvent(id);
     return new Date().toISOString();
   }
-  const full = buildEvent(s.config, card, id, desired);
-  const patch: Partial<CalendarEvent> = { summary: full.summary, colorId: desired.colorId, description: full.description };
+  const full = buildEvent(card, id, desired, s.config.timeZone);
+  const patch: Partial<CalendarEvent> = { summary: full.summary, colorId: desired.colorId };
+  if (desired.description !== last?.description) patch.description = desired.description;
   if (desired.schedule !== last?.schedule) {
     Object.assign(patch, { status: 'confirmed', start: full.start, end: full.end, extendedProperties: full.extendedProperties });
   }
@@ -197,29 +228,32 @@ function nextSchedule(config: GcalConfig, event: CalendarEvent, current: string 
 }
 
 function desiredEvent(config: GcalConfig, card: Card): Desired {
+  const url = config.publicUrl
+    ? `${config.publicUrl}/card/${encodeURIComponent(card.project)}/${encodeURIComponent(card.filename)}`
+    : '';
   return {
     schedule: card.schedule ? effectiveSchedule(card.schedule, config.timeZone) : null,
     summary: `[${card.project}] ${card.title}`,
     colorId: card.status === 'COMPLETED' ? COMPLETED_COLOR_ID : null,
+    description: [card.eventNotes.trim(), url].filter(Boolean).join('\n\n'),
   };
 }
 
-function isSamePush(a: Desired, b: Desired): boolean {
-  return a.schedule === b.schedule && a.summary === b.summary && a.colorId === b.colorId;
+function isSamePush(a: Desired, b: Omit<PushedEvent, 'card' | 'pushedAt'>): boolean {
+  return (
+    a.schedule === b.schedule && a.summary === b.summary && a.colorId === b.colorId && a.description === b.description
+  );
 }
 
-function buildEvent(config: GcalConfig, card: Card, id: string, desired: Desired): CalendarEvent {
-  const url = config.publicUrl
-    ? `${config.publicUrl}/card/${encodeURIComponent(card.project)}/${encodeURIComponent(card.filename)}`
-    : undefined;
+function buildEvent(card: Card, id: string, desired: Desired, timeZone: string): CalendarEvent {
   return {
     id,
     status: 'confirmed',
     summary: desired.summary,
-    description: url,
+    description: desired.description,
     colorId: desired.colorId ?? undefined,
     extendedProperties: { private: { mbProject: card.project, mbFile: card.filename } },
-    ...toEventTimes(parseSchedule(desired.schedule!)!, config.timeZone),
+    ...toEventTimes(parseSchedule(desired.schedule!)!, timeZone),
   };
 }
 

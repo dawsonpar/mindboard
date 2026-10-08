@@ -9,10 +9,11 @@ interface OutlineProps {
   descriptionMd: string;
   backHref: string;
   backLabel: string;
+  hasEventNotes: boolean;
   onExpand: (sectionId: string) => void;
 }
 
-const SECTION_IDS = ['tasks', 'references', 'notes'];
+const SECTION_IDS = ['tasks', 'references', 'event-notes', 'notes'];
 
 function ToggleChevron() {
   return (
@@ -22,7 +23,7 @@ function ToggleChevron() {
   );
 }
 
-export function Outline({ title, descriptionMd, backHref, backLabel, onExpand }: OutlineProps) {
+export function Outline({ title, descriptionMd, backHref, backLabel, hasEventNotes, onExpand }: OutlineProps) {
   const [active, setActive] = useState('title');
   // Mobile-only disclosure for the table of contents.
   const [tocOpen, setTocOpen] = useState(false);
@@ -33,6 +34,7 @@ export function Outline({ title, descriptionMd, backHref, backLabel, onExpand }:
     ...extractHeadings(descriptionMd).map((h) => ({ id: h.id, label: h.text, lvl: h.level })),
     { id: 'tasks', label: 'Tasks', lvl: 0 },
     { id: 'references', label: 'References', lvl: 0 },
+    ...(hasEventNotes ? [{ id: 'event-notes', label: 'Event notes', lvl: 0 }] : []),
     { id: 'notes', label: 'Notes', lvl: 0 },
   ];
 
@@ -53,7 +55,7 @@ export function Outline({ title, descriptionMd, backHref, backLabel, onExpand }:
     return () => obs.disconnect();
     // Rebuild when headings or title change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [descriptionMd, title]);
+  }, [descriptionMd, title, hasEventNotes]);
 
   function jump(e: React.MouseEvent, id: string) {
     e.preventDefault();

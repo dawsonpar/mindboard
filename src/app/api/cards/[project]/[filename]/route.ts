@@ -19,6 +19,7 @@ interface CardUpdateBody {
   priority?: CardPriority;
   complexity?: number | null;
   schedule?: string | null;
+  eventNotes?: string;
   description?: string;
   tasks?: Task[];
   references?: string[];
@@ -52,6 +53,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   if (schedule && !schedule.isValid) {
     return NextResponse.json({ error: schedule.error }, { status: 400 });
   }
+  if (body.eventNotes !== undefined && typeof body.eventNotes !== 'string') {
+    return NextResponse.json({ error: 'eventNotes must be a string' }, { status: 400 });
+  }
 
   const content = fs.readFileSync(absolutePath, 'utf-8');
   const stats = fs.statSync(absolutePath);
@@ -70,6 +74,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     complexity:
       body.complexity !== undefined ? body.complexity : card.complexity,
     schedule: schedule?.isValid ? schedule.value : card.schedule,
+    eventNotes: body.eventNotes ?? card.eventNotes,
     description: body.description ?? card.description,
     tasks: body.tasks ?? card.tasks,
     references: newReferences,
