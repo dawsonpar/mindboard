@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { TimeSelect } from './TimeSelect';
 
 const inputClass =
   'bg-obsidian-bg border border-obsidian-border rounded-input text-obsidian-text px-2 py-1 text-sm focus:outline-none focus:border-obsidian-accent';
@@ -83,6 +84,15 @@ function ScheduleForm({ value, onSubmit }: { value: string | null; onSubmit: (v:
   const [isAllDay, setIsAllDay] = useState(initialStart === '');
   const [start, setStart] = useState(initialStart || DEFAULT_START);
   const [end, setEnd] = useState(initialEnd || addHour(initialStart || DEFAULT_START));
+  const popRef = useRef<HTMLDivElement>(null);
+
+  // Right-anchored to the chip; a short chip near the left edge would push it off screen.
+  useLayoutEffect(() => {
+    const pop = popRef.current;
+    if (!pop) return;
+    const left = pop.getBoundingClientRect().left;
+    if (left < VIEWPORT_GUTTER) pop.style.transform = `translateX(${VIEWPORT_GUTTER - left}px)`;
+  }, []);
 
   const isTimeValid = isAllDay || (start !== '' && end > start);
   const canSave = date !== '' && isTimeValid;
@@ -93,16 +103,21 @@ function ScheduleForm({ value, onSubmit }: { value: string | null; onSubmit: (v:
   }
 
   return (
-    <div className="card-popover schedule-editor" role="dialog" aria-label="Schedule">
+    <div
+      ref={popRef}
+      className="card-popover schedule-editor"
+      role="dialog"
+      aria-label="Schedule"
+    >
       <input type="date" aria-label="Date" className={inputClass} value={date} onChange={(e) => setDate(e.target.value)} />
       <fieldset
         disabled={isAllDay}
         aria-label="Time"
         className={`flex min-w-0 items-center gap-2 transition-opacity duration-150 ${isAllDay ? 'opacity-40' : ''}`}
       >
-        <input type="time" aria-label="Start time" className={`${inputClass} flex-1 min-w-0`} value={start} onChange={(e) => setStart(e.target.value)} />
+        <TimeSelect ariaLabel="Start time" className={inputClass} value={start} onChange={setStart} />
         <span className="text-obsidian-muted text-sm">to</span>
-        <input type="time" aria-label="End time" className={`${inputClass} flex-1 min-w-0`} value={end} onChange={(e) => setEnd(e.target.value)} />
+        <TimeSelect ariaLabel="End time" className={inputClass} value={end} onChange={setEnd} align="end" />
       </fieldset>
       <label className="schedule-row flex items-center justify-between gap-3 text-sm text-obsidian-text cursor-pointer">
         All day
@@ -134,6 +149,7 @@ function ScheduleForm({ value, onSubmit }: { value: string | null; onSubmit: (v:
 }
 
 const DEFAULT_START = '09:00';
+const VIEWPORT_GUTTER = 16;
 
 function addHour(hhmm: string): string {
   const [h, m] = hhmm.split(':').map(Number);
