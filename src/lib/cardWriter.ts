@@ -26,7 +26,6 @@ export function cardToMarkdown(card: Card): string {
   section('Title', card.title);
   if (card.status) section('Status', card.status);
   if (card.priority) section('Priority', card.priority);
-  if (card.complexity != null) section('Complexity', String(card.complexity));
   if (card.schedule) section('Schedule', card.schedule);
   if (card.eventNotes.trim()) section('Event Notes', card.eventNotes.trim());
   section('Description', card.description);

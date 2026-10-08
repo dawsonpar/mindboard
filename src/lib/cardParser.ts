@@ -1,5 +1,5 @@
 import type { Card, CardPriority, CardStatus, Task } from '@/types/card';
-import { formatSchedule, parseSchedule } from '@/lib/schedule';
+import { formatSchedule, parseSchedule } from './schedule.ts';
 
 /** A raw "## Heading" block. Internal to the parser only. */
 interface Section {
@@ -9,8 +9,16 @@ interface Section {
 
 /** Headings the schema maps to dedicated fields. Everything else folds into Description. */
 const KNOWN_HEADINGS = new Set([
-  'title', 'status', 'priority', 'complexity', 'schedule', 'event notes', 'description', 'tasks', 'references', 'comments',
+  'title', 'status', 'priority', 'schedule', 'event notes', 'description', 'tasks', 'references', 'comments',
 ]);
+
+/** Retired fields: dropped on read so the next save removes them (see decision 0005). */
+const RETIRED_HEADINGS = new Set(['complexity']);
+
+function isCustomHeading(heading: string): boolean {
+  const key = heading.toLowerCase();
+  return !KNOWN_HEADINGS.has(key) && !RETIRED_HEADINGS.has(key);
+}
 
 const VALID_STATUSES: CardStatus[] = ['TODO', 'IN PROGRESS', 'REVIEW', 'COMPLETED'];
 const VALID_PRIORITIES: CardPriority[] = ['P0', 'P1', 'P2', 'P3'];
@@ -75,22 +83,6 @@ function parsePriority(raw: string | undefined): CardPriority | null {
     return trimmed as CardPriority;
   }
   return null;
-}
-
-const COMPLEXITY_MIN = 1;
-const COMPLEXITY_MAX = 8;
-
-function parseComplexity(raw: string | undefined): number | null {
-  if (raw === undefined) return null;
-  const value = Number(raw.trim());
-  if (
-    !Number.isInteger(value) ||
-    value < COMPLEXITY_MIN ||
-    value > COMPLEXITY_MAX
-  ) {
-    return null;
-  }
-  return value;
 }
 
 function parseReferences(raw: string | undefined): string[] {
@@ -171,7 +163,6 @@ export function parseCardContent(
 
   const priorityRaw = findSection(sections, 'Priority');
   const priority = parsePriority(priorityRaw);
-  const complexity = parseComplexity(findSection(sections, 'Complexity'));
 
   const scheduleRaw = findSection(sections, 'Schedule');
   const parsedSchedule = scheduleRaw ? parseSchedule(scheduleRaw) : null;
@@ -184,7 +175,7 @@ export function parseCardContent(
 
   const baseDescription = findSection(sections, 'Description') ?? '';
   const customParts = sections
-    .filter((s) => !KNOWN_HEADINGS.has(s.heading.toLowerCase()))
+    .filter((s) => isCustomHeading(s.heading))
     .map((s) => (s.content ? `### ${s.heading}\n\n${s.content}` : `### ${s.heading}`));
   const description = [baseDescription, ...customParts].filter(Boolean).join('\n\n');
   const tasks = parseTasks(findSection(sections, 'Tasks'));
@@ -198,7 +189,6 @@ export function parseCardContent(
     title,
     status,
     priority,
-    complexity,
     schedule,
     eventNotes,
     description,

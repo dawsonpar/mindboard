@@ -17,7 +17,6 @@ interface CardUpdateBody {
   title?: string;
   status?: CardStatus;
   priority?: CardPriority;
-  complexity?: number | null;
   schedule?: string | null;
   eventNotes?: string;
   description?: string;
@@ -71,8 +70,6 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     title: body.title ?? card.title,
     status: body.status !== undefined ? body.status : card.status,
     priority: body.priority !== undefined ? body.priority : card.priority,
-    complexity:
-      body.complexity !== undefined ? body.complexity : card.complexity,
     schedule: schedule?.isValid ? schedule.value : card.schedule,
     eventNotes: body.eventNotes ?? card.eventNotes,
     description: body.description ?? card.description,

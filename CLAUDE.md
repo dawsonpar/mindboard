@@ -32,13 +32,12 @@ token's lightness. The reliable legibility contract a theme must uphold is
 - Or mirror the priority pattern: a FIXED semantic fill color +
   `text-obsidian-bg` content.
 
-### Pitfall we already hit (the complexity badge)
+### Pitfall we already hit (a filled badge)
 
 `fill = obsidian-border` + `content = obsidian-bg` looked fine in the light
 theme but rendered dark-on-dark (effectively invisible) under a dark theme,
-because `border` is a fixed dark gray and `bg` flips dark. The complexity
-badge in `KanbanCard.tsx` now uses `bg-obsidian-text text-obsidian-bg` for
-this reason.
+because `border` is a fixed dark gray and `bg` flips dark. Filled badges should
+use `bg-obsidian-text text-obsidian-bg` for this reason.
 
 ### Before shipping any UI change
 

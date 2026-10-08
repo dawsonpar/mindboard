@@ -81,6 +81,7 @@ missing:
 
 - Section order is now Title, Status, Priority, Complexity, Schedule,
   Event Notes, Description, Tasks, References, Comments (amends 0003).
+  0005 later removes Complexity.
 - Multi-day events and timed events that cross midnight collapse to their
   start day when pulled back.
 - Events created directly on the calendar without card metadata are ignored.
