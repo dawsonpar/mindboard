@@ -221,7 +221,7 @@ select {
 }
 
 /* rendered markdown */
-.card-prose { font-size: 17px; line-height: 1.72; color: var(--color-obsidian-text); padding-top: 30px; }
+.card-prose { font-size: 17px; line-height: 1.72; color: var(--color-obsidian-text); padding-top: 30px; overflow-wrap: anywhere; }
 .card-prose > * { scroll-margin-top: 24px; }
 .card-prose p { margin: 0 0 20px; }
 .card-prose strong { font-weight: 600; }
