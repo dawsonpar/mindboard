@@ -7,51 +7,42 @@ import type { Card } from '@/types/card';
 import { CardArticle } from '@/components/card/CardArticle';
 import { Toast } from '@/components/Toast';
 
+/**
+ * Full-page view of one card. Next.js decodes the dynamic route segments, so
+ * `project` and `filename` arrive decoded. A save changes the card in the
+ * list at once, then replaces it with the copy the server returns.
+ */
 export default function CardPage() {
   const params = useParams<{ project: string; filename: string }>();
-  // Next.js already decodes dynamic route segments.
   const project = params.project;
   const filename = params.filename;
+  const cardKey = `${project}/${filename}`;
 
-  const [card, setCard] = useState<Card | null>(null);
   const [allCards, setAllCards] = useState<Card[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [missing, setMissing] = useState(false);
+  const [loadedKey, setLoadedKey] = useState<string | null>(null);
   const [toast, setToast] = useState<{
     message: string;
     type: 'info' | 'error' | 'success';
   } | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setMissing(false);
-    try {
-      const res = await fetch(`/api/cards?project=${encodeURIComponent(project)}`);
-      const data = await res.json();
-      const cards: Card[] = data.cards ?? [];
-      setAllCards(cards);
-      const found = cards.find((c) => c.filename === filename) ?? null;
-      if (!found) {
-        setMissing(true);
-        setCard(null);
-      } else {
-        setCard(found);
-      }
-    } catch {
-      setToast({ message: 'Failed to load card', type: 'error' });
-    } finally {
-      setLoading(false);
-    }
-  }, [project, filename]);
+  const loading = loadedKey !== cardKey;
+  const card = allCards.find((c) => c.filename === filename) ?? null;
+
+  const load = useCallback(() => {
+    return fetch(`/api/cards?project=${encodeURIComponent(project)}`)
+      .then((res) => res.json())
+      .then((data) => setAllCards(data.cards ?? []))
+      .catch(() => setToast({ message: 'Failed to load card', type: 'error' }))
+      .finally(() => setLoadedKey(cardKey));
+  }, [project, cardKey]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  // Optimistic save: merge locally, then PUT and reconcile with the server card.
   const handleSave = useCallback(
     (updates: Partial<Card>) => {
-      setCard((prev) => (prev ? { ...prev, ...updates } : prev));
+      setAllCards((prev) => prev.map((c) => (c.filename === filename ? { ...c, ...updates } : c)));
       fetch(`/api/cards/${encodeURIComponent(project)}/${encodeURIComponent(filename)}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -60,7 +51,6 @@ export default function CardPage() {
         .then(async (res) => {
           if (!res.ok) throw new Error('save failed');
           const updated: Card = await res.json();
-          setCard(updated);
           setAllCards((prev) => prev.map((c) => (c.filename === updated.filename ? updated : c)));
         })
         .catch(() => {
@@ -79,7 +69,7 @@ export default function CardPage() {
     );
   }
 
-  if (missing || !card) {
+  if (!card) {
     return (
       <div className="mx-auto w-full max-w-2xl px-6 py-16 text-sm text-obsidian-muted">
         <p className="mb-2">Card not found.</p>

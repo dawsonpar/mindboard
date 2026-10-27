@@ -14,21 +14,21 @@ export function EditableTitle({ value, onCommit }: EditableTitleProps) {
   const ref = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setDraft(value);
-  }, [value]);
-
-  useEffect(() => {
     if (editing && ref.current) {
       ref.current.focus();
       ref.current.select();
     }
   }, [editing]);
 
+  function startEditing() {
+    setDraft(value);
+    setEditing(true);
+  }
+
   function commit() {
     setEditing(false);
     const next = draft.trim();
     if (next && next !== value) onCommit(next);
-    else setDraft(value);
   }
 
   if (editing) {
@@ -44,7 +44,6 @@ export function EditableTitle({ value, onCommit }: EditableTitleProps) {
             e.preventDefault();
             e.currentTarget.blur();
           } else if (e.key === 'Escape') {
-            setDraft(value);
             setEditing(false);
           }
         }}
@@ -55,7 +54,7 @@ export function EditableTitle({ value, onCommit }: EditableTitleProps) {
   }
 
   return (
-    <h1 id="title" className="card-title card-editable" onClick={() => setEditing(true)}>
+    <h1 id="title" className="card-title card-editable" onClick={startEditing}>
       {value}
     </h1>
   );

@@ -15,6 +15,11 @@ interface CardModalProps {
   onRestore?: () => void;
 }
 
+/**
+ * Edits one card in a dialog. When the parent passes a new card object (an
+ * SSE update), the fields reset to its values. Edits save after a pause, and
+ * any pending save flushes on close unless the card is read-only.
+ */
 export function CardModal({ card, allCards, onClose, onSave, onNavigate, onExternalChange, readOnly, onRestore }: CardModalProps) {
   const [title, setTitle] = useState(card.title);
   const [status, setStatus] = useState<CardStatus | null>(card.status);
@@ -24,12 +29,10 @@ export function CardModal({ card, allCards, onClose, onSave, onNavigate, onExter
   const [references, setReferences] = useState<string[]>(card.references);
   const [comments, setComments] = useState(card.comments);
   const [titleError, setTitleError] = useState('');
+  const [syncedCard, setSyncedCard] = useState(card);
 
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pendingRef = useRef<Partial<Card>>({});
-
-  // Sync from parent when card prop changes (SSE update)
-  useEffect(() => {
+  if (card !== syncedCard) {
+    setSyncedCard(card);
     setTitle(card.title);
     setStatus(card.status);
     setPriority(card.priority);
@@ -37,7 +40,10 @@ export function CardModal({ card, allCards, onClose, onSave, onNavigate, onExter
     setTasks(card.tasks);
     setReferences(card.references);
     setComments(card.comments);
-  }, [card]);
+  }
+
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingRef = useRef<Partial<Card>>({});
 
   const flushSave = useCallback(() => {
     if (Object.keys(pendingRef.current).length > 0) {
@@ -55,7 +61,6 @@ export function CardModal({ card, allCards, onClose, onSave, onNavigate, onExter
     [flushSave]
   );
 
-  // Flush on unmount (skip when read-only — no saves should happen)
   useEffect(() => {
     if (readOnly) return;
     return () => {
@@ -64,7 +69,6 @@ export function CardModal({ card, allCards, onClose, onSave, onNavigate, onExter
     };
   }, [flushSave, readOnly]);
 
-  // Close on Escape key
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose();
