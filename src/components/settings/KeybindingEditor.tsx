@@ -8,22 +8,24 @@ import {
   comboToString,
   formatCombo,
 } from '@/lib/shortcuts';
+import { useIsMac } from '@/hooks/useIsMac';
 
 interface KeybindingEditorProps {
   onToast: (message: string, type: 'info' | 'error' | 'success') => void;
 }
 
-// Editor for the global shortcut bindings. Loads/saves the keybindings slice
-// of the config independently; each change persists immediately. The board
-// page picks up new bindings when it next mounts.
+/**
+ * Editor for the global shortcut bindings. It loads and saves the
+ * keybindings part of the config on its own, and each change saves at once.
+ * While a row captures, modifier keys alone are ignored, the next full key
+ * combination becomes its binding, and Esc cancels. A combination that
+ * another shortcut uses shows an error and capture continues. The board page
+ * reads new bindings when it next mounts.
+ */
 export function KeybindingEditor({ onToast }: KeybindingEditorProps) {
   const [overrides, setOverrides] = useState<Record<string, string>>({});
   const [capturingId, setCapturingId] = useState<string | null>(null);
-  const [isMac, setIsMac] = useState(false);
-
-  useEffect(() => {
-    setIsMac(/Mac|iPhone|iPad/i.test(navigator.userAgent));
-  }, []);
+  const isMac = useIsMac();
 
   useEffect(() => {
     async function load() {
@@ -55,7 +57,6 @@ export function KeybindingEditor({ onToast }: KeybindingEditorProps) {
     [onToast],
   );
 
-  // While a row is capturing, record the next key combo (Esc cancels).
   useEffect(() => {
     if (!capturingId) return;
     const id = capturingId;
@@ -67,7 +68,7 @@ export function KeybindingEditor({ onToast }: KeybindingEditorProps) {
         return;
       }
       const combo = eventToCombo(e);
-      if (!combo) return; // wait for a non-modifier key
+      if (!combo) return;
       const comboStr = comboToString(combo);
       const eff = resolveBindings(overrides);
       const clash = SHORTCUTS.find(
@@ -75,7 +76,7 @@ export function KeybindingEditor({ onToast }: KeybindingEditorProps) {
       );
       if (clash) {
         onToast(`Already bound to "${clash.label}"`, 'error');
-        return; // keep capturing
+        return;
       }
       const next = { ...overrides, [id]: comboStr };
       setOverrides(next);

@@ -37,10 +37,6 @@ export function EditableMarkdown({ value, onCommit, placeholder, className }: Ed
   const ref = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    setDraft(value);
-  }, [value]);
-
-  useEffect(() => {
     if (editing && ref.current) {
       ref.current.focus();
       autosize(ref.current);
@@ -74,6 +70,7 @@ export function EditableMarkdown({ value, onCommit, placeholder, className }: Ed
       className={`card-prose card-editable ${className ?? ''}`}
       onClick={(e) => {
         if ((e.target as HTMLElement).closest('a')) return;
+        setDraft(value);
         setEditing(true);
       }}
     >
